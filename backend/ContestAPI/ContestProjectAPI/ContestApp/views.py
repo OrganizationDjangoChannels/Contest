@@ -8,3 +8,5 @@ from rest_framework.response import Response
 class TestAPIView(APIView):
     def get(self, request: Request) -> Response:
         return Response({'test_message': 'get_request'}, status=HTTP_200_OK)
+
+# Useless comment
