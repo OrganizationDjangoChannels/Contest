@@ -33,7 +33,7 @@ class TaskModel(BaseModel):
     description = models.TextField(null=True)
     level = models.IntegerField(default=0)
     langs = models.CharField(max_length=255, null=True)
-    owner = models.OneToOneField(ProfileModel, on_delete=models.CASCADE)
+    owner = models.OneToOneField(ProfileModel, on_delete=models.CASCADE, null=True)
 
     class Meta:
         db_table = 'task'
@@ -42,7 +42,7 @@ class TaskModel(BaseModel):
 class SolutionModel(BaseModel):
     file = models.FileField(upload_to=upload_program_path, null=True)
     lang = models.CharField(max_length=255, null=True)
-    task = models.ForeignKey(TaskModel, on_delete=models.CASCADE)
+    task = models.ForeignKey(TaskModel, on_delete=models.CASCADE, null=True)
     points = models.IntegerField(default=0)
     status = models.CharField(max_length=6, choices=TEST_STATUSES, null=True)
 
@@ -51,8 +51,8 @@ class SolutionModel(BaseModel):
 
 
 class AttemptModel(BaseModel):
-    task = models.OneToOneField(TaskModel, on_delete=models.CASCADE)
-    profile = models.OneToOneField(ProfileModel, on_delete=models.CASCADE)
+    task = models.OneToOneField(TaskModel, on_delete=models.CASCADE, null=True)
+    profile = models.OneToOneField(ProfileModel, on_delete=models.CASCADE, null=True)
     attempt_number = models.IntegerField(default=0)
 
     class Meta:
@@ -60,7 +60,7 @@ class AttemptModel(BaseModel):
 
 
 class TestModel(BaseModel):
-    task = models.ForeignKey(TaskModel, on_delete=models.CASCADE)
+    task = models.ForeignKey(TaskModel, on_delete=models.CASCADE, null=True)
     status = models.CharField(max_length=6, choices=TEST_STATUSES, null=True)
     file = models.FileField(upload_to=upload_program_path, null=True)
 
