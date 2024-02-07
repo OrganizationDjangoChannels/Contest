@@ -24,6 +24,7 @@ class FileUploadView(APIView):
     parser_classes = (MultiPartParser, FormParser)
 
     def post(self, request: Request) -> Response:
+        print(f'user = {request.user}')
         serializer = SolutionSerializer(data=request.data)
         if serializer.is_valid():
             file = serializer.validated_data['file']
