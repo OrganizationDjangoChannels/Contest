@@ -53,10 +53,10 @@ const TestComponent = () => {
                     <div>
                         <label htmlFor="lang_select">Choose a lang:</label>
                         <select name="langs" id={"lang_select"} ref={lang_select_ref}>
-                            <option value="c">C</option>
-                            <option value="c++">C++</option>
-                            <option value="java">Java</option>
-                            <option value="python">Python</option>
+                            <option value="C">C</option>
+                            <option value="C++">C++</option>
+                            <option value="Java">Java</option>
+                            <option value="Python">Python</option>
                         </select>
 
                     </div>
