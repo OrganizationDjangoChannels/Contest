@@ -32,7 +32,7 @@ class TaskModel(BaseModel):
     description = models.TextField(null=True)
     level = models.IntegerField(default=0)
     langs = models.CharField(max_length=255, null=True)
-    owner = models.OneToOneField(ProfileModel, on_delete=models.CASCADE, null=True)
+    owner = models.ForeignKey(ProfileModel, on_delete=models.CASCADE, null=True)
 
     class Meta:
         db_table = 'task'
@@ -50,8 +50,8 @@ class SolutionModel(BaseModel):
 
 
 class AttemptModel(BaseModel):
-    task = models.OneToOneField(TaskModel, on_delete=models.CASCADE, null=True)
-    profile = models.OneToOneField(ProfileModel, on_delete=models.CASCADE, null=True)
+    task = models.ForeignKey(TaskModel, on_delete=models.CASCADE, null=True)
+    profile = models.ForeignKey(ProfileModel, on_delete=models.CASCADE, null=True)
     attempt_number = models.IntegerField(default=0)
 
     class Meta:

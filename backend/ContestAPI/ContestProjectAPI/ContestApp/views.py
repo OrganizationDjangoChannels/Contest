@@ -10,10 +10,9 @@ from rest_framework.views import APIView
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
-from django.contrib.auth.models import User
 
-from .models import SolutionModel
-from .serializers import SolutionSerializer, UserSerializer
+from .models import SolutionModel, ProfileModel, TaskModel
+from .serializers import SolutionSerializer, UserSerializer, TaskSerializer, TestSerializer
 from .services.files import get_cmd_commands_for_c_file, get_cmd_command
 
 C_BIN_PATH = settings.C_BIN_PATH
@@ -37,16 +36,10 @@ class LoginAPIView(ObtainAuthToken):
                                            context={'request': request})
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
-        token, created = Token.objects.get_or_create(user=user)
+        token = Token.objects.get(user=user)
         return Response({
             'token': token.key,
         }, status=HTTP_200_OK)
-
-    
-class TestAPIView(APIView):
-    def get(self, request: Request) -> Response:
-        return Response({'test_message': 'get_request'}, status=HTTP_200_OK)
-
 
 
 class TestAuthAPIView(APIView):
@@ -116,3 +109,23 @@ class FileUploadView(APIView):
 
         return Response(serializer.data, status=HTTP_201_CREATED)
 
+
+class TaskAPIView(APIView):
+
+    def post(self, request: Request) -> Response:
+        profile = ProfileModel.objects.get(user=request.user)
+        serializer = TaskSerializer(data=request.data, context={'owner': profile})
+
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=HTTP_201_CREATED)
+
+
+class TestAPIView(APIView):
+    def post(self, request: Request) -> Response:
+        task = TaskModel.objects.get(id=request.data['task_id'])
+        serializer = TestSerializer(data=request.data, context={'task': task})
+
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=HTTP_201_CREATED)

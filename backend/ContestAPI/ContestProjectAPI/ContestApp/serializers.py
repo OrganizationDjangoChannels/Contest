@@ -4,7 +4,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.status import HTTP_400_BAD_REQUEST
 
-from .models import SolutionModel, ProfileModel
+from .models import SolutionModel, ProfileModel, TaskModel, TestModel
 from django.contrib.auth.models import User
 
 
@@ -33,3 +33,22 @@ class UserSerializer(CustomBaseSerializer):
             except django.db.utils.IntegrityError:
                 raise ValidationError(code=HTTP_400_BAD_REQUEST, detail='The user already exists.')
         return user
+
+
+class TaskSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TaskModel
+        fields = ('description', 'level', 'langs', 'owner')
+
+    def create(self, validated_data):
+        return TaskModel.objects.create(**validated_data, **self.context)
+
+
+class TestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TestModel
+        fields = ('status', 'task', 'input', 'output')
+
+    def create(self, validated_data):
+        return TestModel.objects.create(**validated_data, **self.context)
+
