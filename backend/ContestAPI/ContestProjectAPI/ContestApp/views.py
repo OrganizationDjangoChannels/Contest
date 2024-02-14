@@ -2,6 +2,7 @@ import subprocess
 import os
 
 from django.conf import settings
+from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_400_BAD_REQUEST
@@ -24,21 +25,28 @@ class RegisterAPIView(APIView):
         if user_serializer.is_valid():
             user = user_serializer.save()
             token, created = Token.objects.get_or_create(user=user)
-            return Response({'token': token.key}, status=HTTP_200_OK)
+            return Response({'token': token.key}, status=HTTP_201_CREATED)
 
         return Response(status=HTTP_400_BAD_REQUEST)
+
+
+class LoginAPIView(ObtainAuthToken):
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data,
+                                           context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({
+            'token': token.key,
+        }, status=HTTP_200_OK)
 
     
 class TestAPIView(APIView):
     def get(self, request: Request) -> Response:
         return Response({'test_message': 'get_request'}, status=HTTP_200_OK)
 
-
-class TestUserAPIView(APIView):
-    def get(self, request: Request) -> Response:
-        user = User.objects.get(id=1)
-        token, created = Token.objects.get_or_create(user=user)
-        return Response({'token': token.key}, status=HTTP_200_OK)
 
 
 class TestAuthAPIView(APIView):
