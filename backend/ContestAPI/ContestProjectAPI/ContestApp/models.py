@@ -21,7 +21,6 @@ class BaseModel(models.Model):
 
 class ProfileModel(BaseModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    username = models.CharField(max_length=32, null=True)
     points = models.IntegerField(default=0)
     solved_tasks = models.IntegerField(default=0)
 
@@ -62,7 +61,8 @@ class AttemptModel(BaseModel):
 class TestModel(BaseModel):
     task = models.ForeignKey(TaskModel, on_delete=models.CASCADE, null=True)
     status = models.CharField(max_length=6, choices=TEST_STATUSES, null=True)
-    file = models.FileField(upload_to=upload_program_path, null=True)
+    input = models.CharField(max_length=255, null=True)
+    output = models.CharField(max_length=255, null=True)
 
     class Meta:
         db_table = 'test'

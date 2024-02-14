@@ -1,13 +1,12 @@
-
 import './App.css'
-import TestComponent from "./components/TestComponent.tsx";
+import RegisterForm from "./components/RegisterForm.tsx";
+
 
 function App() {
     return (
-        <>
-            <TestComponent/>
-        </>
+
+            <RegisterForm/>
     )
 }
 
-export default App
+export default App;
