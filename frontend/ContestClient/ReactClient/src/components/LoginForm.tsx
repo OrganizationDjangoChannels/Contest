@@ -1,63 +1,62 @@
 import React, { useState } from 'react';
 import {axiosInstance} from "./AxiosInstance.ts";
-import {useCookies} from 'react-cookie';
+import {useCookies} from "react-cookie";
+
+
 
 
 
 interface User {
     username: string;
     password: string;
-    repeat_password: string;
 }
 
-const RegisterForm: React.FC = () => {
+const LoginForm: React.FC = () => {
     const [cookies, setCookie] = useCookies(['token']);
     const [user, setUser] = useState<User>({
         username: '',
-        password: '',
-        repeat_password: ''
+        password: ''
     });
+
 
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const {name, value} = event.target;
-            setUser((prevUser) => ({
-                ...prevUser,
-                [name]: value,
-            }))
+        setUser((prevUser) => ({
+            ...prevUser,
+            [name]: value,
+        }))
 
 
     }
 
-    const handleSubmit = async (event: React.FormEvent) => {
-        if (user.password == user.repeat_password) {
-            event.preventDefault();
+    const doAuth = async (event: React.FormEvent) => {
+        event.preventDefault();
 
             const response  = await axiosInstance.post(
-                'api/v1/register/',
+                'api/v1/login/',
                 {
                     'username' : user.username,
                     'password' : user.password
                 }
             );
+            console.log(response);
             setCookie('token', response.data.token);
             axiosInstance.defaults.headers.post['Authorization'] = `Token ${cookies.token}`;
-            const response2  = await axiosInstance.post(
-                'api/v1/check_auth/'
 
-            );
-            console.log(response2);
+
+
 
         }
         // Добавьте здесь логику отправки данных на сервер
-    };
+
 
     return (
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={doAuth}>
             <div>
                 <label htmlFor="username">Username:</label>
                 <input
                     type="text"
-                    id="username"
+                    id="login_username"
                     name="username"
                     value={user.username}
                     onChange={handleInputChange}
@@ -67,25 +66,16 @@ const RegisterForm: React.FC = () => {
                 <label htmlFor="password">Password:</label>
                 <input
                     type="password"
-                    id="password"
+                    id="login_password"
                     name="password"
                     value={user.password}
                     onChange={handleInputChange}
                 />
             </div>
-            <div>
-                <label htmlFor="password">Repeat password:</label>
-                <input
-                    type="password"
-                    id="repeat_password"
-                    name="repeat_password"
-                    value={user.repeat_password}
-                    onChange={handleInputChange}
-                />
-            </div>
-            <button type="submit">Register</button>
+
+            <button type="submit">Sign in</button>
         </form>
     );
 };
 
-export default RegisterForm;
+export default LoginForm;
