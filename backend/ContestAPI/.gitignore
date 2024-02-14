@@ -1,2 +1,5 @@
 media/
 compilers/
+pyvenv.cfg
+/Scripts
+/Lib

@@ -44,7 +44,7 @@ class TestUserAPIView(APIView):
 class TestAuthAPIView(APIView):
     permission_classes = (IsAuthenticated, )
 
-    def get(self, request: Request) -> Response:
+    def post(self, request: Request) -> Response:
         print(request.user.username)
 
         return Response(status=HTTP_200_OK)
