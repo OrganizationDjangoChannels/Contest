@@ -3,21 +3,51 @@ import os
 
 from django.conf import settings
 from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_400_BAD_REQUEST
 from rest_framework.views import APIView
 from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework.authtoken.models import Token
+from django.contrib.auth.models import User
 
 from .models import SolutionModel
-from .serializers import SolutionSerializer
+from .serializers import SolutionSerializer, UserSerializer
 from .services.files import get_cmd_commands_for_c_file, get_cmd_command
 
 C_BIN_PATH = settings.C_BIN_PATH
 
 
+class RegisterAPIView(APIView):
+    def post(self, request: Request) -> Response:
+        user_serializer = UserSerializer(data=request.data)
+        if user_serializer.is_valid():
+            user = user_serializer.save()
+            token, created = Token.objects.get_or_create(user=user)
+            return Response({'token': token.key}, status=HTTP_200_OK)
+
+        return Response(status=HTTP_400_BAD_REQUEST)
+
+    
 class TestAPIView(APIView):
     def get(self, request: Request) -> Response:
         return Response({'test_message': 'get_request'}, status=HTTP_200_OK)
+
+
+class TestUserAPIView(APIView):
+    def get(self, request: Request) -> Response:
+        user = User.objects.get(id=1)
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({'token': token.key}, status=HTTP_200_OK)
+
+
+class TestAuthAPIView(APIView):
+    permission_classes = (IsAuthenticated, )
+
+    def get(self, request: Request) -> Response:
+        print(request.user.username)
+
+        return Response(status=HTTP_200_OK)
 
 
 class FileUploadView(APIView):
