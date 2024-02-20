@@ -50,7 +50,7 @@ class TestAuthAPIView(APIView):
         profile = ProfileModel.objects.get(user=request.user)
         print(profile)
 
-        return Response(request.user, status=HTTP_200_OK)
+        return Response({'user_id': profile.user.id}, status=HTTP_200_OK)
 
 
 class FileUploadView(APIView):
