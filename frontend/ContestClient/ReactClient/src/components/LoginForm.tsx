@@ -12,7 +12,7 @@ interface User {
 }
 
 const LoginForm: React.FC = () => {
-    const [cookies, setCookie] = useCookies(['token']);
+    const [, setCookie] = useCookies(['token']);
     const [user, setUser] = useState<User>({
         username: '',
         password: ''
@@ -41,7 +41,7 @@ const LoginForm: React.FC = () => {
             );
             console.log(response);
             setCookie('token', response.data.token);
-            axiosInstance.defaults.headers.post['Authorization'] = `Token ${cookies.token}`;
+            axiosInstance.defaults.headers.post['Authorization'] = `Token ${response.data.token}`;
 
 
 

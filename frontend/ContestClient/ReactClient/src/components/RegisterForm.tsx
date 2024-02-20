@@ -11,7 +11,7 @@ interface User {
 }
 
 const RegisterForm: React.FC = () => {
-    const [cookies, setCookie] = useCookies(['token']);
+    const [, setCookie] = useCookies(['token']);
     const [user, setUser] = useState<User>({
         username: '',
         password: '',
@@ -40,7 +40,7 @@ const RegisterForm: React.FC = () => {
                 }
             );
             setCookie('token', response.data.token);
-            axiosInstance.defaults.headers.post['Authorization'] = `Token ${cookies.token}`;
+            axiosInstance.defaults.headers.post['Authorization'] = `Token ${response.data.token}`;
             const response2  = await axiosInstance.post(
                 'api/v1/check_auth/'
 
