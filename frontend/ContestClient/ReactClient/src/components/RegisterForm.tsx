@@ -53,9 +53,10 @@ const RegisterForm: React.FC = () => {
 
     return (
         <form onSubmit={handleSubmit}>
-            <div>
-                <label htmlFor="username">Username:</label>
+            <div className={"input-container"}>
+                <label htmlFor="username" className={"input-label"}>Username:</label>
                 <input
+                    className={"input-field"}
                     type="text"
                     id="username"
                     name="username"
@@ -63,9 +64,10 @@ const RegisterForm: React.FC = () => {
                     onChange={handleInputChange}
                 />
             </div>
-            <div>
-                <label htmlFor="password">Password:</label>
+            <div className={"input-container"}>
+                <label htmlFor="password" className={"input-label"}>Password:</label>
                 <input
+                    className={"input-field"}
                     type="password"
                     id="password"
                     name="password"
@@ -73,9 +75,10 @@ const RegisterForm: React.FC = () => {
                     onChange={handleInputChange}
                 />
             </div>
-            <div>
-                <label htmlFor="password">Repeat password:</label>
+            <div className={"input-container"}>
+                <label htmlFor="password" className={"input-label"}>Repeat password:</label>
                 <input
+                    className={"input-field"}
                     type="password"
                     id="repeat_password"
                     name="repeat_password"
@@ -83,7 +86,7 @@ const RegisterForm: React.FC = () => {
                     onChange={handleInputChange}
                 />
             </div>
-            <button type="submit">Register</button>
+            <button type="submit" className={"submit-button"}>Register</button>
         </form>
     );
 };

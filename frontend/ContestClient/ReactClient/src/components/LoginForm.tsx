@@ -52,9 +52,10 @@ const LoginForm: React.FC = () => {
 
     return (
         <form onSubmit={doAuth}>
-            <div>
-                <label htmlFor="username">Username:</label>
+            <div className={"input-container"}>
+                <label className={"input-label"} htmlFor="username">Username:</label>
                 <input
+                    className={"input-field"}
                     type="text"
                     id="login_username"
                     name="username"
@@ -62,9 +63,10 @@ const LoginForm: React.FC = () => {
                     onChange={handleInputChange}
                 />
             </div>
-            <div>
-                <label htmlFor="password">Password:</label>
+            <div className={"input-container"}>
+                <label className={"input-label"} htmlFor="password">Password:</label>
                 <input
+                    className={"input-field"}
                     type="password"
                     id="login_password"
                     name="password"
@@ -73,7 +75,7 @@ const LoginForm: React.FC = () => {
                 />
             </div>
 
-            <button type="submit">Sign in</button>
+            <button type="submit" className={"submit-button"}>Sign in</button>
         </form>
     );
 };
