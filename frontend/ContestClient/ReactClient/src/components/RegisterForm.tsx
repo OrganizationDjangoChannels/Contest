@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import {axiosInstance} from "./AxiosInstance.ts";
 import {useCookies} from 'react-cookie';
+import {setToken} from "./Token.ts";
+import {useNavigate} from "react-router-dom";
 
 
 
@@ -17,6 +19,7 @@ const RegisterForm: React.FC = () => {
         password: '',
         repeat_password: ''
     });
+    const navigate = useNavigate();
 
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const {name, value} = event.target;
@@ -39,13 +42,10 @@ const RegisterForm: React.FC = () => {
                     'password' : user.password
                 }
             );
-            setCookie('token', response.data.token);
+            await setToken(setCookie,'token', response.data.token);
             axiosInstance.defaults.headers.post['Authorization'] = `Token ${response.data.token}`;
-            const response2  = await axiosInstance.post(
-                'api/v1/check_auth/'
+            navigate('/');
 
-            );
-            console.log(response2);
 
         }
         // Добавьте здесь логику отправки данных на сервер

@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import {axiosInstance} from "./AxiosInstance.ts";
 import {useCookies} from "react-cookie";
-
-
-
+import {useNavigate} from "react-router-dom";
+import {setToken} from "./Token.ts";
 
 
 interface User {
@@ -11,12 +10,15 @@ interface User {
     password: string;
 }
 
+
+
 const LoginForm: React.FC = () => {
-    const [, setCookie] = useCookies(['token']);
+    const [cookie, setCookie] = useCookies(['token']);
     const [user, setUser] = useState<User>({
         username: '',
         password: ''
     });
+    const navigate = useNavigate();
 
 
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,10 +42,12 @@ const LoginForm: React.FC = () => {
                 }
             );
             console.log(response);
-            setCookie('token', response.data.token);
+
+            await setToken(setCookie,'token', response.data.token);
+
             axiosInstance.defaults.headers.post['Authorization'] = `Token ${response.data.token}`;
 
-
+            navigate('/');
 
 
         }
@@ -76,6 +80,9 @@ const LoginForm: React.FC = () => {
             </div>
 
             <button type="submit" className={"submit-button"}>Sign in</button>
+            <div>
+                {cookie.token}
+            </div>
         </form>
     );
 };
