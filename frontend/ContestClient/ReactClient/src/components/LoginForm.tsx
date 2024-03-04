@@ -1,94 +1,90 @@
 import React, { useState } from 'react';
 import {axiosInstance} from "./AxiosInstance.ts";
-import {useCookies} from 'react-cookie';
-import {setToken} from "./Token.ts";
+import {useCookies} from "react-cookie";
 import {useNavigate} from "react-router-dom";
-
+import {setToken} from "./Token.ts";
 
 
 interface User {
     username: string;
     password: string;
-    repeat_password: string;
 }
 
-const RegisterForm: React.FC = () => {
-    const [, setCookie] = useCookies(['token']);
+
+
+const LoginForm: React.FC = () => {
+    const [cookie, setCookie] = useCookies(['token']);
     const [user, setUser] = useState<User>({
         username: '',
-        password: '',
-        repeat_password: ''
+        password: ''
     });
     const navigate = useNavigate();
 
+
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const {name, value} = event.target;
-            setUser((prevUser) => ({
-                ...prevUser,
-                [name]: value,
-            }))
+        setUser((prevUser) => ({
+            ...prevUser,
+            [name]: value,
+        }))
 
 
     }
 
-    const handleSubmit = async (event: React.FormEvent) => {
-        if (user.password == user.repeat_password) {
-            event.preventDefault();
+    const doAuth = async (event: React.FormEvent) => {
+        event.preventDefault();
 
             const response  = await axiosInstance.post(
-                'api/v1/register/',
+                'api/v1/login/',
                 {
                     'username' : user.username,
                     'password' : user.password
                 }
             );
+            console.log(response);
+
             await setToken(setCookie,'token', response.data.token);
+
             axiosInstance.defaults.headers.post['Authorization'] = `Token ${response.data.token}`;
+
             navigate('/');
 
 
         }
         // Добавьте здесь логику отправки данных на сервер
-    };
+
 
     return (
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={doAuth}>
             <div className={"input-container"}>
-                <label htmlFor="username" className={"input-label"}>Username:</label>
+                <label className={"input-label"} htmlFor="username">Username:</label>
                 <input
                     className={"input-field"}
                     type="text"
-                    id="username"
+                    id="login_username"
                     name="username"
                     value={user.username}
                     onChange={handleInputChange}
                 />
             </div>
             <div className={"input-container"}>
-                <label htmlFor="password" className={"input-label"}>Password:</label>
+                <label className={"input-label"} htmlFor="password">Password:</label>
                 <input
                     className={"input-field"}
                     type="password"
-                    id="password"
+                    id="login_password"
                     name="password"
                     value={user.password}
                     onChange={handleInputChange}
                 />
             </div>
-            <div className={"input-container"}>
-                <label htmlFor="password" className={"input-label"}>Repeat password:</label>
-                <input
-                    className={"input-field"}
-                    type="password"
-                    id="repeat_password"
-                    name="repeat_password"
-                    value={user.repeat_password}
-                    onChange={handleInputChange}
-                />
+
+            <button type="submit" className={"submit-button"}>Sign in</button>
+            <div>
+                {cookie.token}
             </div>
-            <button type="submit" className={"submit-button"}>Register</button>
         </form>
     );
 };
 
-export default RegisterForm;
+export default LoginForm;

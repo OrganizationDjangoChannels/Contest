@@ -2,17 +2,17 @@ import subprocess
 import os
 
 from django.conf import settings
+from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_400_BAD_REQUEST
+from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 from rest_framework.views import APIView
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
-from django.contrib.auth.models import User
 
-from .models import SolutionModel
-from .serializers import SolutionSerializer, UserSerializer
+from .models import SolutionModel, ProfileModel, TaskModel
+from .serializers import SolutionSerializer, UserSerializer, TaskSerializer, TestSerializer, ProfileSerializer
 from .services.files import get_cmd_commands_for_c_file, get_cmd_command
 
 C_BIN_PATH = settings.C_BIN_PATH
@@ -24,21 +24,42 @@ class RegisterAPIView(APIView):
         if user_serializer.is_valid():
             user = user_serializer.save()
             token, created = Token.objects.get_or_create(user=user)
-            return Response({'token': token.key}, status=HTTP_200_OK)
+            return Response({'token': token.key}, status=HTTP_201_CREATED)
 
         return Response(status=HTTP_400_BAD_REQUEST)
 
-    
-class TestAPIView(APIView):
-    def get(self, request: Request) -> Response:
-        return Response({'test_message': 'get_request'}, status=HTTP_200_OK)
+
+class LoginAPIView(ObtainAuthToken):
+
+    def post(self, request, *args, **kwargs) -> Response:
+        serializer = self.serializer_class(data=request.data,
+                                           context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        token = Token.objects.get(user=user)
+        return Response({
+            'token': token.key,
+        }, status=HTTP_200_OK)
 
 
-class TestUserAPIView(APIView):
-    def get(self, request: Request) -> Response:
-        user = User.objects.get(id=1)
-        token, created = Token.objects.get_or_create(user=user)
-        return Response({'token': token.key}, status=HTTP_200_OK)
+class ProfileAPIView(APIView):
+    def get(self, request: Request, profile_id=None) -> Response:
+
+        if request.user.is_authenticated:  # get profile via token
+            profile = ProfileModel.objects.get(user=request.user)
+            response = Response(ProfileSerializer(profile).data)
+
+        elif profile_id is None:   # get 10 profiles
+            profiles = ProfileModel.objects.all().order_by('id')[0: 10]
+            response = Response(ProfileSerializer(profiles, many=True).data)
+        else:    # get profile by id
+            try:
+                profile = ProfileModel.objects.get(id=profile_id)
+                response = Response(ProfileSerializer(profile).data)
+            except ProfileModel.DoesNotExist:
+                response = Response({'message': 'The item does not exist'}, status=HTTP_404_NOT_FOUND)
+
+        return response
 
 
 class TestAuthAPIView(APIView):
@@ -46,8 +67,13 @@ class TestAuthAPIView(APIView):
 
     def post(self, request: Request) -> Response:
         print(request.user.username)
+        profile = ProfileModel.objects.get(user=request.user)
+        print(profile)
 
-        return Response(status=HTTP_200_OK)
+        return Response({'user_id': profile.user.id,
+                         'username': profile.user.username
+                         },
+                        status=HTTP_200_OK)
 
 
 class FileUploadView(APIView):
@@ -108,3 +134,38 @@ class FileUploadView(APIView):
 
         return Response(serializer.data, status=HTTP_201_CREATED)
 
+
+class TaskAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request: Request, task_id=None) -> Response:
+        if task_id is None:
+            tasks = TaskModel.objects.all().order_by('id')[0: 10]
+            response = Response(TaskSerializer(tasks, many=True).data)
+
+        else:
+            try:
+                task = TaskModel.objects.get(id=task_id)
+                response = Response(TaskSerializer(task).data)
+            except TaskModel.DoesNotExist:
+                response = Response({'message': 'The item does not exist'}, status=HTTP_404_NOT_FOUND)
+
+        return response
+
+    def post(self, request: Request) -> Response:
+        profile = ProfileModel.objects.get(user=request.user)
+        serializer = TaskSerializer(data=request.data, context={'owner': profile})
+
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=HTTP_201_CREATED)
+
+
+class TestAPIView(APIView):
+    def post(self, request: Request) -> Response:
+        task = TaskModel.objects.get(id=request.data['task_id'])
+        serializer = TestSerializer(data=request.data, context={'task': task})
+
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=HTTP_201_CREATED)
