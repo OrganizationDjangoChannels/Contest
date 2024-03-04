@@ -95,6 +95,22 @@ form{
 
 }
 
+div.flex_container_horizontal{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    margin: 4px;
+}
+
+div.flex_container_vertical{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 4px;
+}
+
 .input-container{
     display: flex;
     flex-direction: row;
@@ -124,6 +140,37 @@ form{
     }
 }
 
+select{
+    font-size: 18px;
+    margin-left: 16px;
+    padding: 4px;
+    text-align: center;
+    border: 2px solid #AAAAAA;
+    border-radius: 4px;
+}
+
+textarea{
+    font-size: 16px;
+    padding: 8px;
+    margin: 8px;
+    border: 2px solid #AAAAAA;
+    border-radius: 4px;
+    &:focus{
+        outline: none;
+        border: 2px solid #DDDDDD;
+    }
+}
+
 .submit-button{
     margin: 8px;
 }
+
+.checkbox-label{
+    margin-left: 4px;
+}
+
+span.langs_selection{
+    margin-left: 20px;
+}
+
+

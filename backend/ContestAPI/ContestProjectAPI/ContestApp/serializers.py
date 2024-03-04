@@ -35,10 +35,22 @@ class UserSerializer(CustomBaseSerializer):
         return user
 
 
+class ProfileSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
+
+    class Meta:
+        model = ProfileModel
+        fields = ('id', 'user', 'points', 'solved_tasks')
+        read_only_fields = ('id', )
+
+
 class TaskSerializer(serializers.ModelSerializer):
+    owner = ProfileSerializer(read_only=True)
+
     class Meta:
         model = TaskModel
-        fields = ('description', 'level', 'langs', 'owner')
+        fields = ('id', 'description', 'level', 'langs', 'owner')
+        read_only_fields = ('id', 'owner')
 
     def create(self, validated_data):
         return TaskModel.objects.create(**validated_data, **self.context)

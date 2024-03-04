@@ -1,6 +1,8 @@
 import {useCookies} from "react-cookie";
 import {useState} from "react";
 import {axiosInstance} from "./AxiosInstance.ts";
+import {logout} from "./logout.ts";
+import {useNavigate} from "react-router-dom";
 
 interface IUser{
     user_id: number,
@@ -8,7 +10,7 @@ interface IUser{
 }
 
 const Home = () => {
-    const [cookie] = useCookies(['token']);
+    const [cookie, , removeCookie] = useCookies(['token']);
     console.log(cookie);
     const [user, setUser] = useState<IUser>();
     const checkAuth = async () => {
@@ -19,6 +21,8 @@ const Home = () => {
         console.log(response);
         setUser(response.data);
     }
+
+    const navigate = useNavigate();
 
     return (
         <>
@@ -33,6 +37,12 @@ const Home = () => {
             </div>
             <button onClick={checkAuth}>
                 check auth
+            </button>
+            <button onClick={() => {
+                logout(removeCookie);
+                navigate('/');
+            }}>
+                logout
             </button>
         </>
 

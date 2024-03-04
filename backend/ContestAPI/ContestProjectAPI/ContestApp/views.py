@@ -5,14 +5,14 @@ from django.conf import settings
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_400_BAD_REQUEST
+from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 from rest_framework.views import APIView
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 
 from .models import SolutionModel, ProfileModel, TaskModel
-from .serializers import SolutionSerializer, UserSerializer, TaskSerializer, TestSerializer
+from .serializers import SolutionSerializer, UserSerializer, TaskSerializer, TestSerializer, ProfileSerializer
 from .services.files import get_cmd_commands_for_c_file, get_cmd_command
 
 C_BIN_PATH = settings.C_BIN_PATH
@@ -31,7 +31,7 @@ class RegisterAPIView(APIView):
 
 class LoginAPIView(ObtainAuthToken):
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs) -> Response:
         serializer = self.serializer_class(data=request.data,
                                            context={'request': request})
         serializer.is_valid(raise_exception=True)
@@ -40,6 +40,26 @@ class LoginAPIView(ObtainAuthToken):
         return Response({
             'token': token.key,
         }, status=HTTP_200_OK)
+
+
+class ProfileAPIView(APIView):
+    def get(self, request: Request, profile_id=None) -> Response:
+
+        if request.user.is_authenticated:  # get profile via token
+            profile = ProfileModel.objects.get(user=request.user)
+            response = Response(ProfileSerializer(profile).data)
+
+        elif profile_id is None:   # get 10 profiles
+            profiles = ProfileModel.objects.all().order_by('id')[0: 10]
+            response = Response(ProfileSerializer(profiles, many=True).data)
+        else:    # get profile by id
+            try:
+                profile = ProfileModel.objects.get(id=profile_id)
+                response = Response(ProfileSerializer(profile).data)
+            except ProfileModel.DoesNotExist:
+                response = Response({'message': 'The item does not exist'}, status=HTTP_404_NOT_FOUND)
+
+        return response
 
 
 class TestAuthAPIView(APIView):
@@ -116,6 +136,21 @@ class FileUploadView(APIView):
 
 
 class TaskAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request: Request, task_id=None) -> Response:
+        if task_id is None:
+            tasks = TaskModel.objects.all().order_by('id')[0: 10]
+            response = Response(TaskSerializer(tasks, many=True).data)
+
+        else:
+            try:
+                task = TaskModel.objects.get(id=task_id)
+                response = Response(TaskSerializer(task).data)
+            except TaskModel.DoesNotExist:
+                response = Response({'message': 'The item does not exist'}, status=HTTP_404_NOT_FOUND)
+
+        return response
 
     def post(self, request: Request) -> Response:
         profile = ProfileModel.objects.get(user=request.user)

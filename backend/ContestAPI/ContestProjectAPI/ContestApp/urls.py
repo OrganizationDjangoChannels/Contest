@@ -7,6 +7,9 @@ urlpatterns = [
     path('api/v1/register/', views.RegisterAPIView.as_view()),
     path('api/v1/login/', views.LoginAPIView.as_view()),
     path('api/v1/task/', views.TaskAPIView.as_view()),
+    path('api/v1/task/<int:task_id>/', views.TaskAPIView.as_view()),
+    path('api/v1/profile/', views.ProfileAPIView.as_view()),
+    path('api/v1/profile/<int:profile_id>/', views.ProfileAPIView.as_view()),
     path('api/v1/test/', views.TestAPIView.as_view()),
     path('api/v1/auth/', include('rest_framework.urls', namespace='rest_framework')),
 
