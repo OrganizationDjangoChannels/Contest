@@ -35,15 +35,21 @@ const Home = () => {
             <div>
                 username = {user ? user.username : ''}
             </div>
-            <button onClick={checkAuth}>
-                check auth
-            </button>
-            <button onClick={() => {
-                logout(removeCookie);
-                navigate('/');
-            }}>
-                logout
-            </button>
+            <div>
+                <button onClick={checkAuth} className={'submit-button'}>
+                    check auth
+                </button>
+            </div>
+
+            <div>
+                <button className={'submit-button'} onClick={() => {
+                    logout(removeCookie);
+                    navigate('/');
+                }}>
+                    logout
+                </button>
+            </div>
+
         </>
 
     );
