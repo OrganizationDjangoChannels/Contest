@@ -12,7 +12,7 @@ export type Profile = {
 }
 
 export type Task = {
-    id: number | null,
+    id: number,
     description: string,
     level: number,
     langs: string,   // not type Langs
@@ -24,4 +24,19 @@ export type Langs = {
     'C++': boolean,
     Java: boolean,
     Python: boolean,
+}
+
+export type Test = {
+    input: string | null,
+    output: string | null,
+    test_number: number,
+}
+
+export type TestShow = {
+    id: number,
+    input: string,
+    output: string,
+    test_number: number,
+    task: Task,
+    status: string | null,
 }

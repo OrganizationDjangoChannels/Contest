@@ -63,6 +63,7 @@ class TestModel(BaseModel):
     status = models.CharField(max_length=6, choices=TEST_STATUSES, null=True)
     input = models.CharField(max_length=255, null=True)
     output = models.CharField(max_length=255, null=True)
+    test_number = models.IntegerField(null=True)
 
     class Meta:
         db_table = 'test'

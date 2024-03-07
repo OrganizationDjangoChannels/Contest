@@ -11,7 +11,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 
-from .models import SolutionModel, ProfileModel, TaskModel
+from .models import SolutionModel, ProfileModel, TaskModel, TestModel
 from .serializers import SolutionSerializer, UserSerializer, TaskSerializer, TestSerializer, ProfileSerializer
 from .services.files import get_cmd_commands_for_c_file, get_cmd_command
 
@@ -49,10 +49,10 @@ class ProfileAPIView(APIView):
             profile = ProfileModel.objects.get(user=request.user)
             response = Response(ProfileSerializer(profile).data)
 
-        elif profile_id is None:   # get 10 profiles
+        elif profile_id is None:  # get 10 profiles
             profiles = ProfileModel.objects.all().order_by('id')[0: 10]
             response = Response(ProfileSerializer(profiles, many=True).data)
-        else:    # get profile by id
+        else:  # get profile by id
             try:
                 profile = ProfileModel.objects.get(id=profile_id)
                 response = Response(ProfileSerializer(profile).data)
@@ -63,7 +63,7 @@ class ProfileAPIView(APIView):
 
 
 class TestAuthAPIView(APIView):
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated,)
 
     def post(self, request: Request) -> Response:
         print(request.user.username)
@@ -136,7 +136,6 @@ class FileUploadView(APIView):
 
 
 class TaskAPIView(APIView):
-    permission_classes = (IsAuthenticated,)
 
     def get(self, request: Request, task_id=None) -> Response:
         if task_id is None:
@@ -164,8 +163,23 @@ class TaskAPIView(APIView):
 class TestAPIView(APIView):
     def post(self, request: Request) -> Response:
         task = TaskModel.objects.get(id=request.data['task_id'])
-        serializer = TestSerializer(data=request.data, context={'task': task})
+        tests_created_number = 0
+        for test in request.data['tests']:
+            if test['input'] is not None and test['output'] is not None:
+                serializer = TestSerializer(data=test, context={'task': task})
+                if serializer.is_valid(raise_exception=True):
+                    serializer.save()
+                    tests_created_number += 1
 
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            return Response(serializer.data, status=HTTP_201_CREATED)
+        return Response({'tests_created': tests_created_number}, status=HTTP_201_CREATED)
+
+    def get(self, request: Request) -> Response:
+        task_id = request.GET.get('task_id', None)
+        if task_id is None:
+            tests = TestModel.objects.all().order_by('id')[0: 100]
+            response = Response(TestSerializer(tests, many=True).data)
+        else:
+            tests = TestModel.objects.filter(task__id=task_id)
+            response = Response(TestSerializer(tests, many=True).data)
+
+        return response

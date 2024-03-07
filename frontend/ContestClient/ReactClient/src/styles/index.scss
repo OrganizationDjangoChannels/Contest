@@ -173,4 +173,31 @@ span.langs_selection{
     margin-left: 20px;
 }
 
+.tests_container{
+    overflow: auto;
+    max-height: 220px;
+    margin: 0 32px 12px 16px;
+}
+
+.test_input_container{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+
+.test_number{
+    font-size: 20px;
+    margin: 8px 8px 0 8px;
+    text-align: center;
+    min-width: 24px;
+}
+
+#tests_label{
+    font-size: 20px;
+    margin-left: 8px;
+    margin-top: 24px;
+}
+
+
 

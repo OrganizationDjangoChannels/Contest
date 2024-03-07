@@ -57,9 +57,12 @@ class TaskSerializer(serializers.ModelSerializer):
 
 
 class TestSerializer(serializers.ModelSerializer):
+    task = TaskSerializer(read_only=True)
+
     class Meta:
         model = TestModel
-        fields = ('status', 'task', 'input', 'output')
+        fields = ('id', 'status', 'task', 'input', 'output', 'test_number')
+        read_only_fields = ('id', 'task')
 
     def create(self, validated_data):
         return TestModel.objects.create(**validated_data, **self.context)
