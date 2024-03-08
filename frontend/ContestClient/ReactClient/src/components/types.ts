@@ -40,3 +40,8 @@ export type TestShow = {
     task: Task,
     status: string | null,
 }
+
+export type SolutionCreate = {
+    file: File | null,
+    lang: string | null,
+}

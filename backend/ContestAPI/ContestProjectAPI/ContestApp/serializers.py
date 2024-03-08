@@ -14,10 +14,7 @@ class CustomBaseSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True, required=False)
 
 
-class SolutionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = SolutionModel
-        fields = ('file', 'lang')
+
 
 
 class UserSerializer(CustomBaseSerializer):
@@ -67,3 +64,15 @@ class TestSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         return TestModel.objects.create(**validated_data, **self.context)
 
+
+class SolutionSerializer(serializers.ModelSerializer):
+    task = TaskSerializer(read_only=True)
+    owner = ProfileSerializer(read_only=True)
+
+    class Meta:
+        model = SolutionModel
+        fields = ('id', 'file', 'lang', 'points', 'status', 'task', 'owner', 'created_at', 'passed_tests')
+        read_only_fields = ('id', 'task', 'owner', 'created_at', 'passed_tests')
+
+    def create(self, validated_data):
+        return SolutionModel.objects.create(**validated_data, **self.context)

@@ -11,9 +11,9 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 
-from .models import SolutionModel, ProfileModel, TaskModel, TestModel
+from .models import SolutionModel, ProfileModel, TaskModel, TestModel, AttemptModel
 from .serializers import SolutionSerializer, UserSerializer, TaskSerializer, TestSerializer, ProfileSerializer
-from .services.files import get_cmd_commands_for_c_file, get_cmd_command
+from .services.files import get_cmd_commands_for_c_file, get_cmd_command, run_test
 
 C_BIN_PATH = settings.C_BIN_PATH
 
@@ -183,3 +183,50 @@ class TestAPIView(APIView):
             response = Response(TestSerializer(tests, many=True).data)
 
         return response
+
+
+class SolutionAPIView(APIView):
+    parser_classes = (MultiPartParser, FormParser)
+
+    def post(self, request: Request) -> Response:
+        task = TaskModel.objects.get(id=request.data['task_id'])
+        profile = ProfileModel.objects.get(user=request.user)
+        serializer = SolutionSerializer(data=request.data, context={'task': task, 'owner': profile})
+        if serializer.is_valid():
+            solution = SolutionModel(**serializer.validated_data)
+            solution.save()
+            file = solution.file
+            lang = solution.lang
+
+            tests = TestModel.objects.filter(task=task)
+            passed_tests = 0
+
+            if lang == 'C' or lang == 'C++':
+                environment = os.environ.copy()
+                environment["PATH"] = C_BIN_PATH
+                commands = get_cmd_commands_for_c_file(str(file), str(lang), ).split(';')
+
+                build_command = commands[0]
+                compile_command = commands[1]
+
+                run_command = subprocess.Popen(build_command,
+                                               shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                               env=environment, )
+                output, error = run_command.communicate()
+                if run_command.returncode != 0:
+                    print(error)
+                    print(f'returncode: {run_command.returncode}')
+                    print('build error')
+
+                for test in tests:
+                    passed_tests += run_test(test=test, compile_command=compile_command, environment=environment)
+
+            else:
+                compile_command = get_cmd_command(str(file), str(lang))
+                for test in tests:
+                    passed_tests += run_test(test=test, compile_command=compile_command)
+
+            solution.passed_tests = passed_tests
+            solution.save()
+
+        return Response(serializer.data, status=HTTP_201_CREATED)

@@ -88,6 +88,7 @@ form{
     flex-direction: column;
     flex-wrap: wrap;
     background-color: $BASE_900;
+    font-size: 20px;
 
     box-shadow: 2px 2px 2px 0 #F0F268;
     border: 4px solid #F0F268;
@@ -197,6 +198,26 @@ span.langs_selection{
     font-size: 20px;
     margin-left: 8px;
     margin-top: 24px;
+}
+
+.solution_upload_container{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 12px;
+}
+
+.solution_upload_item{
+    margin-top: 8px;
+}
+
+#file_input{
+    font-size: 20px;
+}
+
+#lang_choice, #file_choice{
+    align-self: flex-start;
 }
 
 

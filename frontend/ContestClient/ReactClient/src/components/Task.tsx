@@ -2,8 +2,9 @@ import {useParams} from "react-router-dom";
 import {useEffect, useState} from "react";
 import {axiosInstance} from "./AxiosInstance.ts";
 import {useCookies} from "react-cookie";
-import {Task as TaskType, TestShow as TestType} from "./types.ts";
+import {SolutionCreate, Task as TaskType, TestShow as TestType} from "./types.ts";
 import Test from "./Test.tsx";
+import SolutionForm from "./SolutionForm.tsx";
 
 
 const Task = () => {
@@ -11,6 +12,11 @@ const Task = () => {
     const {id} = useParams();
     const [task, setTask] = useState<TaskType>();
     const [tests, setTests] = useState<TestType[]>();
+
+    const [solution, setSolution] = useState<SolutionCreate>({
+        file: null,
+        lang: 'C',   // C language is default in select
+    });
 
     useEffect( () => {
         axiosInstance.defaults.headers.post['Authorization'] = `Token ${cookie.token}`;
@@ -53,6 +59,12 @@ const Task = () => {
                 tests.map(test => <Test test={test} key={test.id}/>)
                 : ''
             }
+            <SolutionForm
+                solution={solution}
+                setSolution={setSolution}
+                task_id={task ? task.id : null}
+                task_langs={task ? task.langs : null}
+            />
         </>
 
     );
