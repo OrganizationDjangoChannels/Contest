@@ -20,7 +20,8 @@ function App() {
                     <Route path="/register" element={<RegisterForm/>}></Route>
                     <Route path="/login" element={<LoginForm/>}></Route>
                     <Route path="/create-task" element={<TaskForm/>}></Route>
-                    <Route path="/tasks" element={<Tasks/>}></Route>
+                    <Route path="/tasks" element={<Tasks by_myself={0}/>}></Route>
+                    <Route path="/my-tasks" element={<Tasks by_myself={1}/>}></Route>
                     <Route path="/task/:id" element={<Task/>}></Route>
                 </Routes>
             </BrowserRouter>

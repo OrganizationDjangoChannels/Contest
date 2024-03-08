@@ -10,8 +10,9 @@ from rest_framework.views import APIView
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
+from rest_framework.exceptions import APIException
 
-from .models import SolutionModel, ProfileModel, TaskModel, TestModel, AttemptModel
+from .models import SolutionModel, ProfileModel, TaskModel, TestModel
 from .serializers import SolutionSerializer, UserSerializer, TaskSerializer, TestSerializer, ProfileSerializer
 from .services.files import get_cmd_commands_for_c_file, get_cmd_command, run_test
 
@@ -76,71 +77,18 @@ class TestAuthAPIView(APIView):
                         status=HTTP_200_OK)
 
 
-class FileUploadView(APIView):
-    parser_classes = (MultiPartParser, FormParser)
-
-    def post(self, request: Request) -> Response:
-        print(f'user = {request.user}')
-        serializer = SolutionSerializer(data=request.data)
-        if serializer.is_valid():
-            file = serializer.validated_data['file']
-            lang = serializer.validated_data['lang']
-
-            solution = SolutionModel(file=file, lang=lang, )
-            solution.save()
-            file = solution.file
-
-            if lang == 'C' or lang == 'C++':
-                environment = os.environ.copy()
-                environment["PATH"] = C_BIN_PATH
-                commands = get_cmd_commands_for_c_file(str(file), str(lang), ).split(';')
-
-                build_command = commands[0]
-                compile_command = commands[1]
-
-                run_command = subprocess.Popen(build_command,
-                                               shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                               env=environment, )
-                output, error = run_command.communicate()
-                if run_command.returncode != 0:
-                    print(error)
-                    print(f'returncode: {run_command.returncode}')
-
-                run_command = subprocess.Popen(compile_command,
-                                               shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                               stdin=subprocess.PIPE, env=environment, )
-                input_data = b'4\n1\n2\n3\n4\n'
-                output, error = run_command.communicate(input=input_data)
-
-                if run_command.returncode != 0:
-                    print(error)
-                    print(f'returncode: {run_command.returncode}')
-
-                print(output.decode('utf-8'))
-
-            else:
-
-                run_command = subprocess.Popen(get_cmd_command(str(file), str(lang)),
-                                               shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                               stdin=subprocess.PIPE, )
-                input_data = b'4\n1\n2\n3\n4\n'
-                output, error = run_command.communicate(input=input_data)
-
-                if run_command.returncode != 0:
-                    print(error)
-                    print(f'returncode: {run_command.returncode}')
-
-                print(output.decode('utf-8'))
-
-        return Response(serializer.data, status=HTTP_201_CREATED)
-
-
 class TaskAPIView(APIView):
 
     def get(self, request: Request, task_id=None) -> Response:
         if task_id is None:
-            tasks = TaskModel.objects.all().order_by('id')[0: 10]
-            response = Response(TaskSerializer(tasks, many=True).data)
+            by_myself = request.GET.get('by_myself', None)
+            if by_myself == '1':
+                profile = ProfileModel.objects.get(user=request.user)
+                tasks = TaskModel.objects.filter(owner=profile).order_by('id')[0: 50]
+                response = Response(TaskSerializer(tasks, many=True).data)
+            else:
+                tasks = TaskModel.objects.all().order_by('id')[0: 50]
+                response = Response(TaskSerializer(tasks, many=True).data)
 
         else:
             try:
@@ -192,13 +140,14 @@ class SolutionAPIView(APIView):
         task = TaskModel.objects.get(id=request.data['task_id'])
         profile = ProfileModel.objects.get(user=request.user)
         serializer = SolutionSerializer(data=request.data, context={'task': task, 'owner': profile})
-        if serializer.is_valid():
+        if serializer.is_valid(raise_exception=True):
             solution = SolutionModel(**serializer.validated_data)
             solution.save()
             file = solution.file
             lang = solution.lang
 
             tests = TestModel.objects.filter(task=task)
+            tests_count = tests.count()
             passed_tests = 0
 
             if lang == 'C' or lang == 'C++':
@@ -217,6 +166,7 @@ class SolutionAPIView(APIView):
                     print(error)
                     print(f'returncode: {run_command.returncode}')
                     print('build error')
+                    raise APIException(code=HTTP_400_BAD_REQUEST, detail=error, )
 
                 for test in tests:
                     passed_tests += run_test(test=test, compile_command=compile_command, environment=environment)
@@ -226,7 +176,13 @@ class SolutionAPIView(APIView):
                 for test in tests:
                     passed_tests += run_test(test=test, compile_command=compile_command)
 
+            task.sent_solutions += 1
+            task.save()
             solution.passed_tests = passed_tests
+            solution.points = tests_count / passed_tests * 100 * task.level
             solution.save()
 
-        return Response(serializer.data, status=HTTP_201_CREATED)
+            return Response(
+                {**serializer.data, 'passed_tests': passed_tests, 'points': solution.points},
+                status=HTTP_201_CREATED
+            )

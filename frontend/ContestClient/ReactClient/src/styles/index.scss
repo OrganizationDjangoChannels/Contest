@@ -31,6 +31,7 @@ a {
     font-weight: 500;
     color: #646cff;
     text-decoration: inherit;
+    transition: color 0.5s ease-in-out;
 }
 a:hover {
     color: #535bf2;
@@ -218,6 +219,65 @@ span.langs_selection{
 
 #lang_choice, #file_choice{
     align-self: flex-start;
+}
+
+.title_input_field{
+    font-size: 20px;
+    border-radius: $main_border-radius;
+    margin: 8px;
+    width: 400px;
+    height: 32px;
+    padding: 8px;
+    &:focus{
+        outline: none;
+    }
+    &::placeholder{
+        font-family: monospace;
+    }
+}
+
+.title_label_container, .description_label_container{
+    margin-top: 8px;
+
+}
+
+.task_show_container{
+    background-color: #333333;
+    border-radius: $main_border-radius;
+    font-size: 20px;
+    margin: 24px;
+    padding: 16px 24px 16px 24px;
+    width: 512px;
+    min-height: 256px;
+}
+
+.task_header_container{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.task_header_item{
+    padding-left: 4px;
+}
+
+.task_title{
+    min-width: 256px + 128px;
+    text-align: left;
+}
+
+.task_description{
+    overflow: auto;
+    text-align: left;
+    height: 156px;
+    margin: 12px 4px 4px 4px;
+    padding: 0 8px 0 8px;
+    text-indent: 8px;
+}
+
+.custom_link{
+
 }
 
 

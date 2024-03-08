@@ -9,7 +9,8 @@ const TaskForm = () => {
     const [cookie] = useCookies(['token']);
     const [taskFormData, setTaskFormData] = useState<Task>({
         id: 1,
-        description: 'My description',
+        title: '',
+        description: '',
         level: 1,
         langs: 'C|C++|Python|Java',
         owner: null,
@@ -33,7 +34,9 @@ const TaskForm = () => {
     };
 
     const handleOnChangeTaskFormData =
-        (e: ChangeEvent<HTMLSelectElement> | ChangeEvent<HTMLTextAreaElement>) => {
+        (e: ChangeEvent<HTMLSelectElement>
+            | ChangeEvent<HTMLTextAreaElement>
+            | ChangeEvent<HTMLInputElement>) => {
         setTaskFormData(taskFormData => ({
             ...taskFormData,
             [e.target.name]: e.target.value,
@@ -67,13 +70,27 @@ const TaskForm = () => {
             <h3>Create your task</h3>
             <form onSubmit={handleOnSubmitTaskForm}>
                 <div className={"flex_container_vertical"}>
+                    <div className={'title_label_container'}>
+                        <label className={"input-label"}>
+                            Title
+                        </label>
+                    </div>
                     <div>
-                        <label htmlFor={'description_area'} className={"input-label"}>
+                        <input
+                            className={'title_input_field'}
+                            type="text"
+                            name='title'
+                            placeholder={'title'}
+                            onChange={handleOnChangeTaskFormData}
+                        />
+                    </div>
+                    <div className={'description_label_container'}>
+                        <label htmlFor={'description_area'} className={"input-label"} >
                             Description
                         </label>
                     </div>
                     <textarea rows={10} cols={54} id={'description_area'} name={'description'}
-                              placeholder={'write your description'} onChange={handleOnChangeTaskFormData}>
+                              placeholder={'description'} onChange={handleOnChangeTaskFormData}>
 
                     </textarea>
                 </div>

@@ -1,4 +1,4 @@
-import {Langs, Test} from "./types.ts";
+import {DifficultyTable, Langs, Test} from "./types.ts";
 
 export const tests_max_number = 100;
 
@@ -37,5 +37,26 @@ export const parse_langs = (str_langs: string | null): Langs | null => {
         }
     }
     return langs;
+}
+
+export const difficulty_table: DifficultyTable = {
+    1: 'easy',
+    2: 'medium',
+    3: 'hard',
+}
+
+export const level_to_string = (level: number): string | null => {
+    if (level in difficulty_table){
+        if (level === 1){
+            return difficulty_table[1];
+        }
+        if (level === 2){
+            return difficulty_table[2];
+        }
+        if (level === 3){
+            return difficulty_table[3];
+        }
+    }
+    return null;
 }
 

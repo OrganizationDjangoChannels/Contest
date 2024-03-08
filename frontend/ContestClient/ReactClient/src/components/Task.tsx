@@ -48,6 +48,7 @@ const Task = () => {
     return (
         <>
             <div>task_id = {task ? task.id: ''}</div>
+            <div>title = {task ? task.title: ''}</div>
             <div>description = {task ? task.description: ''}</div>
             <div>level = {task ? task.level: ''}</div>
             <div>langs = {task ? task.langs: ''}</div>

@@ -13,10 +13,21 @@ export type Profile = {
 
 export type Task = {
     id: number,
+    title: string,
     description: string,
     level: number,
     langs: string,   // not type Langs
     owner: Profile | null,
+}
+
+export type TaskShow = {
+    id: number,
+    title: string,
+    description: string,
+    level: number,
+    langs: string,   // not type Langs
+    owner: Profile | null,
+    sent_solutions: number,
 }
 
 export type Langs = {
@@ -44,4 +55,10 @@ export type TestShow = {
 export type SolutionCreate = {
     file: File | null,
     lang: string | null,
+}
+
+export type DifficultyTable = {
+    1: string,
+    2: string,
+    3: string,
 }

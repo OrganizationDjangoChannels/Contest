@@ -46,8 +46,8 @@ class TaskSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TaskModel
-        fields = ('id', 'description', 'level', 'langs', 'owner')
-        read_only_fields = ('id', 'owner')
+        fields = ('id', 'title', 'description', 'level', 'langs', 'owner', 'sent_solutions')
+        read_only_fields = ('id', 'owner', 'sent_solutions')
 
     def create(self, validated_data):
         return TaskModel.objects.create(**validated_data, **self.context)
