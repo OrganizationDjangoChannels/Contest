@@ -1,4 +1,5 @@
 import os
+import subprocess
 from time import time
 from django.conf import settings
 from pathlib import Path
@@ -43,3 +44,24 @@ def get_cmd_commands_for_c_file(path_to_file: str, lang: str) -> str:
     if lang == 'C':
         return (f'{C_PATH} {full_path_to_file} -o {Path(full_path_to_file).with_suffix("")};'
                 f'{full_path_to_exe_file}')
+
+
+def run_test(test, compile_command: str, environment=None) -> int:
+    run_command = subprocess.Popen(compile_command,
+                                   shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                   stdin=subprocess.PIPE, env=environment, )
+    input_data = test.input.encode('utf-8')
+    output, error = run_command.communicate(input=input_data)
+
+    if run_command.returncode != 0:
+        print(error)
+        print(f'returncode: {run_command.returncode}')
+        print('compile error')
+        return 0
+
+    if output.rstrip() == test.output.encode('utf-8'):
+        print(f'test #{test.test_number} passed')
+        return 1
+    else:
+        print(f'test #{test.test_number} failed')
+        return 0

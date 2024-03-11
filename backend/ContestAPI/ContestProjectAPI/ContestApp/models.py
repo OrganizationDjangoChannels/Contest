@@ -29,10 +29,12 @@ class ProfileModel(BaseModel):
 
 
 class TaskModel(BaseModel):
+    title = models.CharField(max_length=255, null=True)
     description = models.TextField(null=True)
     level = models.IntegerField(default=0)
     langs = models.CharField(max_length=255, null=True)
     owner = models.ForeignKey(ProfileModel, on_delete=models.CASCADE, null=True)
+    sent_solutions = models.IntegerField(default=0)
 
     class Meta:
         db_table = 'task'
@@ -42,8 +44,10 @@ class SolutionModel(BaseModel):
     file = models.FileField(upload_to=upload_program_path, null=True)
     lang = models.CharField(max_length=255, null=True)
     task = models.ForeignKey(TaskModel, on_delete=models.CASCADE, null=True)
-    points = models.IntegerField(default=0)
+    owner = models.ForeignKey(ProfileModel, on_delete=models.CASCADE, null=True)
+    points = models.FloatField(default=0)
     status = models.CharField(max_length=6, choices=TEST_STATUSES, null=True)
+    passed_tests = models.IntegerField(default=0)
 
     class Meta:
         db_table = 'solution'
@@ -63,6 +67,7 @@ class TestModel(BaseModel):
     status = models.CharField(max_length=6, choices=TEST_STATUSES, null=True)
     input = models.CharField(max_length=255, null=True)
     output = models.CharField(max_length=255, null=True)
+    test_number = models.IntegerField(null=True)
 
     class Meta:
         db_table = 'test'

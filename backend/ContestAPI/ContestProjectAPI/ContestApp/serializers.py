@@ -14,10 +14,7 @@ class CustomBaseSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True, required=False)
 
 
-class SolutionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = SolutionModel
-        fields = ('file', 'lang')
+
 
 
 class UserSerializer(CustomBaseSerializer):
@@ -49,18 +46,33 @@ class TaskSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TaskModel
-        fields = ('id', 'description', 'level', 'langs', 'owner')
-        read_only_fields = ('id', 'owner')
+        fields = ('id', 'title', 'description', 'level', 'langs', 'owner', 'sent_solutions')
+        read_only_fields = ('id', 'owner', 'sent_solutions')
 
     def create(self, validated_data):
         return TaskModel.objects.create(**validated_data, **self.context)
 
 
 class TestSerializer(serializers.ModelSerializer):
+    task = TaskSerializer(read_only=True)
+
     class Meta:
         model = TestModel
-        fields = ('status', 'task', 'input', 'output')
+        fields = ('id', 'status', 'task', 'input', 'output', 'test_number')
+        read_only_fields = ('id', 'task')
 
     def create(self, validated_data):
         return TestModel.objects.create(**validated_data, **self.context)
 
+
+class SolutionSerializer(serializers.ModelSerializer):
+    task = TaskSerializer(read_only=True)
+    owner = ProfileSerializer(read_only=True)
+
+    class Meta:
+        model = SolutionModel
+        fields = ('id', 'file', 'lang', 'points', 'status', 'task', 'owner', 'created_at', 'passed_tests')
+        read_only_fields = ('id', 'task', 'owner', 'created_at', 'passed_tests')
+
+    def create(self, validated_data):
+        return SolutionModel.objects.create(**validated_data, **self.context)

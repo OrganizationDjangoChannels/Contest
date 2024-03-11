@@ -13,7 +13,7 @@ interface User {
 
 
 const LoginForm: React.FC = () => {
-    const [cookie, setCookie] = useCookies(['token']);
+    const [, setCookie] = useCookies(['token']);
     const [user, setUser] = useState<User>({
         username: '',
         password: ''
@@ -80,9 +80,7 @@ const LoginForm: React.FC = () => {
             </div>
 
             <button type="submit" className={"submit-button"}>Sign in</button>
-            <div>
-                {cookie.token}
-            </div>
+
         </form>
     );
 };

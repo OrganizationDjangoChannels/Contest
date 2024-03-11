@@ -31,6 +31,7 @@ a {
     font-weight: 500;
     color: #646cff;
     text-decoration: inherit;
+    transition: color 0.5s ease-in-out;
 }
 a:hover {
     color: #535bf2;
@@ -88,6 +89,7 @@ form{
     flex-direction: column;
     flex-wrap: wrap;
     background-color: $BASE_900;
+    font-size: 20px;
 
     box-shadow: 2px 2px 2px 0 #F0F268;
     border: 4px solid #F0F268;
@@ -172,5 +174,111 @@ textarea{
 span.langs_selection{
     margin-left: 20px;
 }
+
+.tests_container{
+    overflow: auto;
+    max-height: 220px;
+    margin: 0 32px 12px 16px;
+}
+
+.test_input_container{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+
+.test_number{
+    font-size: 20px;
+    margin: 8px 8px 0 8px;
+    text-align: center;
+    min-width: 24px;
+}
+
+#tests_label{
+    font-size: 20px;
+    margin-left: 8px;
+    margin-top: 24px;
+}
+
+.solution_upload_container{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 12px;
+}
+
+.solution_upload_item{
+    margin-top: 8px;
+}
+
+#file_input{
+    font-size: 20px;
+}
+
+#lang_choice, #file_choice{
+    align-self: flex-start;
+}
+
+.title_input_field{
+    font-size: 20px;
+    border-radius: $main_border-radius;
+    margin: 8px;
+    width: 400px;
+    height: 32px;
+    padding: 8px;
+    &:focus{
+        outline: none;
+    }
+    &::placeholder{
+        font-family: monospace;
+    }
+}
+
+.title_label_container, .description_label_container{
+    margin-top: 8px;
+
+}
+
+.task_show_container{
+    background-color: #333333;
+    border-radius: $main_border-radius;
+    font-size: 20px;
+    margin: 24px;
+    padding: 16px 24px 16px 24px;
+    width: 512px;
+    min-height: 256px;
+}
+
+.task_header_container{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.task_header_item{
+    padding-left: 4px;
+}
+
+.task_title{
+    min-width: 256px + 128px;
+    text-align: left;
+}
+
+.task_description{
+    overflow: auto;
+    text-align: left;
+    height: 156px;
+    margin: 12px 4px 4px 4px;
+    padding: 0 8px 0 8px;
+    text-indent: 8px;
+}
+
+.custom_link{
+
+}
+
 
 
