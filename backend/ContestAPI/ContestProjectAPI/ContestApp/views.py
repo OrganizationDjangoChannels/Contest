@@ -84,10 +84,10 @@ class TaskAPIView(APIView):
             by_myself = request.GET.get('by_myself', None)
             if by_myself == '1':
                 profile = ProfileModel.objects.get(user=request.user)
-                tasks = TaskModel.objects.filter(owner=profile).order_by('id')[0: 50]
+                tasks = TaskModel.objects.filter(owner=profile).order_by('-id')[0: 50]
                 response = Response(TaskSerializer(tasks, many=True).data)
             else:
-                tasks = TaskModel.objects.all().order_by('id')[0: 50]
+                tasks = TaskModel.objects.all().order_by('-id')[0: 50]
                 response = Response(TaskSerializer(tasks, many=True).data)
 
         else:
@@ -136,6 +136,20 @@ class TestAPIView(APIView):
 class SolutionAPIView(APIView):
     parser_classes = (MultiPartParser, FormParser)
 
+    def get(self, request: Request) -> Response:
+        task_id = request.GET.get('task_id', None)
+        profile = ProfileModel.objects.get(user=request.user)
+
+        if task_id is None:
+            solutions = SolutionModel.objects.all().order_by('-id')[0: 100]
+            response = Response(SolutionSerializer(solutions, many=True).data)
+
+        else:
+            solutions = SolutionModel.objects.filter(task__id=task_id).order_by('-id')[0: 100]
+            response = Response(SolutionSerializer(solutions, many=True).data)
+
+        return response
+
     def post(self, request: Request) -> Response:
         task = TaskModel.objects.get(id=request.data['task_id'])
         profile = ProfileModel.objects.get(user=request.user)
@@ -180,6 +194,8 @@ class SolutionAPIView(APIView):
             task.save()
             solution.passed_tests = passed_tests
             solution.points = tests_count / passed_tests * 100 * task.level
+            solution.task = task
+            solution.owner = profile
             solution.save()
 
             return Response(

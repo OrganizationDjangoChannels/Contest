@@ -47,7 +47,7 @@ const SolutionForm = ({solution, setSolution, task_id, task_langs}: SolutionForm
     }
 
     return (
-        <div>
+        <div className={'solution_form_container'}>
             <form encType="multipart/form-data" onSubmit={handleOnSubmitSolutionForm}>
                 <div className={'solution_upload_container'}>
                     <div className={'solution_upload_item'} id={'file_choice'}>

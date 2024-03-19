@@ -276,8 +276,43 @@ span.langs_selection{
     text-indent: 8px;
 }
 
-.custom_link{
+.solution_form_container{
+    margin-top: 20px;
+}
 
+.solutions_table_container{
+    display: flex;
+    justify-content: center;
+}
+
+table.solutions_table{
+    margin-top: 40px;
+}
+
+
+table th{
+    font-weight: bold;
+    border: 1px solid #dddddd;
+    background: #333333;
+}
+
+table td{
+    text-align: center;
+    padding: 8px 16px 8px 16px;
+    border: 1px solid #dddddd;
+    font-size: 20px;
+}
+
+thead th:nth-child(1) {
+    width: 25%;
+}
+
+thead th:nth-child(2) {
+    width: 15%;
+}
+
+thead th:nth-child(3) {
+    width: 15%;
 }
 
 
