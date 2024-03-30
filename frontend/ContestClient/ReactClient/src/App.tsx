@@ -9,6 +9,8 @@ import Home from "./components/Home.tsx";
 import TaskForm from "./components/TaskForm.tsx";
 import Tasks from "./components/Tasks.tsx";
 import Task from "./components/Task.tsx";
+import Ratings from "./components/Ratings.tsx";
+import ProfileShow from "./components/Profile.tsx";
 
 
 function App() {
@@ -23,6 +25,8 @@ function App() {
                     <Route path="/tasks" element={<Tasks by_myself={0}/>}></Route>
                     <Route path="/my-tasks" element={<Tasks by_myself={1}/>}></Route>
                     <Route path="/task/:id" element={<Task/>}></Route>
+                    <Route path="/ratings" element={<Ratings/>}></Route>
+                    <Route path="/user/:id" element={<ProfileShow/>}></Route>
                 </Routes>
             </BrowserRouter>
 

@@ -11,10 +11,11 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from rest_framework.exceptions import APIException
+from django.db.models import Max
 
 from .models import SolutionModel, ProfileModel, TaskModel, TestModel
 from .serializers import SolutionSerializer, UserSerializer, TaskSerializer, TestSerializer, ProfileSerializer
-from .services.files import get_cmd_commands_for_c_file, get_cmd_command, run_test
+from .services.files import get_cmd_commands_for_c_file, get_cmd_command, run_test, get_solution_status
 
 C_BIN_PATH = settings.C_BIN_PATH
 
@@ -46,7 +47,7 @@ class LoginAPIView(ObtainAuthToken):
 class ProfileAPIView(APIView):
     def get(self, request: Request, profile_id=None) -> Response:
 
-        if request.user.is_authenticated:  # get profile via token
+        if request.user.is_authenticated and profile_id is None:  # get profile via token
             profile = ProfileModel.objects.get(user=request.user)
             response = Response(ProfileSerializer(profile).data)
 
@@ -192,13 +193,33 @@ class SolutionAPIView(APIView):
 
             task.sent_solutions += 1
             task.save()
+
+            my_solution_max_points = SolutionModel.objects.filter(
+                owner=profile, task=task).aggregate(Max('points'))['points__max']
+
             solution.passed_tests = passed_tests
             solution.points = tests_count / passed_tests * 100 * task.level
+            solution.status = get_solution_status(solution.points, task.level)
             solution.task = task
             solution.owner = profile
             solution.save()
+
+            if my_solution_max_points:
+                if solution.points > my_solution_max_points:
+                    profile.points += (solution.points - my_solution_max_points)
+                    profile.save()
+            else:
+                profile.points += solution.points
+                profile.save()
 
             return Response(
                 {**serializer.data, 'passed_tests': passed_tests, 'points': solution.points},
                 status=HTTP_201_CREATED
             )
+
+
+class RatingsAPIView(APIView):
+    def get(self, request: Request) -> Response:
+        profiles = ProfileModel.objects.all().order_by('-points', 'id')[0:50]
+        response = Response(ProfileSerializer(profiles, many=True).data)
+        return response
