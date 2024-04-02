@@ -43,6 +43,29 @@ const TaskForm = () => {
         }));
     }
 
+    const handleOnChangeFile = (e: ChangeEvent<HTMLInputElement>) => {
+        let tests_from_files = empty_tests;
+        console.log(e.target.files);
+        if (e.target.files){
+            for (let file of e.target.files){
+                let filename_split = file.name.slice(0, -4).split('-');
+                let reader = new FileReader();
+                let test_index = Number(filename_split[1]) - 1;
+                reader.readAsText(file);
+                reader.onload = function() {
+                    if (filename_split[0] === 'input' && reader.result){
+                        tests_from_files[test_index].input = reader.result.toString();
+                    }
+                    if (filename_split[0] === 'output' && reader.result){
+                        tests_from_files[test_index].output = reader.result.toString();
+                    }
+
+                };
+            }
+        }
+        setTests(tests_from_files);
+    }
+
     const handleOnSubmitTaskForm = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         axiosInstance.defaults.headers.post['Authorization'] = `Token ${cookie.token}`;
@@ -142,6 +165,13 @@ const TaskForm = () => {
                         Task tests
                     </label>
                 </div>
+                <div className={'flex_container_horizontal'}>
+                    <div className={'solution_upload_item flex_container_horizontal'} id={'file_choice'}>
+                        <input type="file" name="file" id={"file_input"} multiple={true}
+                               onChange={handleOnChangeFile}/>
+                    </div>
+                </div>
+
                 <div className={'flex_container_horizontal'}>
                     <div className={'tests_container'}>
                         {

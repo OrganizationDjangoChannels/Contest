@@ -1,4 +1,4 @@
-import {ChangeEvent, Dispatch, FormEvent, SetStateAction} from "react";
+import {ChangeEvent, Dispatch, FormEvent, SetStateAction, useState} from "react";
 import {SolutionCreate} from "./types.ts";
 import {axiosFileUploadInstance} from "./AxiosInstance.ts";
 import {useCookies} from "react-cookie";
@@ -16,6 +16,9 @@ const SolutionForm = ({solution, setSolution, task_id, task_langs}: SolutionForm
 
     const [cookie] = useCookies(['token']);
     const langs = parse_langs(task_langs);
+
+    const [solutionStatus, setSolutionStatus] =
+        useState<string | null>(null);
 
     const handleOnChangeFile = (e: ChangeEvent<HTMLInputElement>) => {
         setSolution((prev) => ({
@@ -36,6 +39,7 @@ const SolutionForm = ({solution, setSolution, task_id, task_langs}: SolutionForm
         console.log(solution);
 
         axiosFileUploadInstance.defaults.headers.post['Authorization'] = `Token ${cookie.token}`;
+        setSolutionStatus('running tests...');
         const response = await axiosFileUploadInstance.post(
             'api/v1/solution/',
             {
@@ -43,6 +47,7 @@ const SolutionForm = ({solution, setSolution, task_id, task_langs}: SolutionForm
                 task_id: task_id,
             }
         );
+        setSolutionStatus('');
         console.log(response);
     }
 
@@ -67,6 +72,9 @@ const SolutionForm = ({solution, setSolution, task_id, task_langs}: SolutionForm
                     <div className={'solution_upload_item'}>
                         <button type="submit" className={"submit-button"}>Send solution</button>
                     </div>
+                    {solutionStatus ? (
+                        <div>{solutionStatus}</div>
+                    ) : ''}
                 </div>
 
             </form>
