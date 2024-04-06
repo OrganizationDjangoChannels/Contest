@@ -64,6 +64,7 @@ export type SolutionShowType = {
     lang: string | null,
     points: number,
     owner: Profile,
+    task: Task,
 }
 
 export type DifficultyTable = {

@@ -6,6 +6,7 @@ import {SolutionCreate, SolutionShowType, Task as TaskType} from "./types.ts";
 import SolutionForm from "./SolutionForm.tsx";
 import {level_to_string} from "./TestsDefault.ts";
 import SolutionsTable from "./SolutionsTable.tsx";
+import Header from "./Header.tsx";
 
 
 const Task = () => {
@@ -22,7 +23,7 @@ const Task = () => {
     const [solutions,
         setSolutions] = useState<SolutionShowType[]>();
 
-    useEffect( () => {
+    const getTask = () => {
         axiosInstance.defaults.headers.post['Authorization'] = `Token ${cookie.token}`;
         if (id){
             axiosInstance.get(
@@ -33,10 +34,10 @@ const Task = () => {
                     console.log(response.data);
                 })
                 .catch((error) => {console.log(error)})
-
-
         }
+    }
 
+    const getSolutions = () => {
         axiosInstance.defaults.headers.get['Authorization'] = `Token ${cookie.token}`;
         axiosInstance.get(
             'api/v1/solution/',
@@ -51,11 +52,18 @@ const Task = () => {
                 console.log(response);
             })
             .catch((error) => {console.log(error)})
+    }
 
+    useEffect( () => {
+        if (cookie.token){
+            getTask();
+            getSolutions();
+        }
     }, []);
 
     return (
         <>
+            <Header/>
             <div className={'task_show_container'}>
                 <div><strong>{task ? task.title: ''}</strong></div>
                 <div className={'task_description'}>{task ? task.description: ''}</div>
@@ -79,7 +87,7 @@ const Task = () => {
             />
 
             <div className={'solutions_table_container'}>
-                {solutions ? (<SolutionsTable solutions={solutions}/>) : ''}
+                {solutions ? (<SolutionsTable solutions={solutions} showTaskId={false}/>) : ''}
 
             </div>
 

@@ -4,6 +4,7 @@ import {useCookies} from "react-cookie";
 import {TaskShow as TaskShowType} from "./types.ts";
 import TaskShow from "./TaskShow.tsx";
 import {level_to_string} from "./TestsDefault.ts";
+import Header from "./Header.tsx";
 
 type TasksPropTypes = {
     by_myself: number,
@@ -68,12 +69,14 @@ const Tasks = (props: TasksPropTypes) => {
 
 
     useEffect( () => {
-        getTasks();
-
+        if (cookie.token){
+            getTasks();
+        }
     }, []);
 
     return (
         <>
+            <Header/>
             <h2>Tasks</h2>
             <span className={'langs_selection'}>
                         <input type={'checkbox'} id={'easy_level'} name={'1'}

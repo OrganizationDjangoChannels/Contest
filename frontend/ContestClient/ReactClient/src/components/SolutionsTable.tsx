@@ -2,16 +2,24 @@
 import SolutionShow from "./SolutionShow.tsx";
 import {SolutionShowType} from "./types.ts";
 
+
 type SolutionShowPropTypes = {
     solutions: SolutionShowType[],
+    showTaskId: boolean,
 }
 
-const SolutionsTable = ({solutions}: SolutionShowPropTypes) => {
+const SolutionsTable = ({solutions, showTaskId}: SolutionShowPropTypes) => {
     return (
         <table className={'solutions_table'}>
             <thead>
             <tr>
-                <td>Profile</td>
+
+                {showTaskId ?
+                    (<td>Task</td>)
+                    :
+                    <td>Profile</td>
+                }
+
                 <td>Sent at</td>
                 <td>Lang</td>
                 <td>Points</td>
@@ -20,7 +28,7 @@ const SolutionsTable = ({solutions}: SolutionShowPropTypes) => {
             <tbody>
             {solutions ?
                 solutions.map(solution =>
-                    <SolutionShow solution={solution} key={solution.id}/>
+                    <SolutionShow solution={solution} showTaskId={showTaskId} key={solution.id}/>
 
                 )
                 : ''

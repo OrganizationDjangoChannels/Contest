@@ -57,7 +57,23 @@ class ProfileAPIView(APIView):
         else:  # get profile by id
             try:
                 profile = ProfileModel.objects.get(id=profile_id)
-                response = Response(ProfileSerializer(profile).data)
+                solutions = SolutionModel.objects\
+                    .filter(owner=profile, status='solved')\
+                    .distinct('task', 'created_at')\
+                    .order_by('-created_at')
+                tasks_ids_array = []
+                for solution in solutions:
+                    tasks_ids_array.append(solution.task.id)
+                tasks = TaskModel.objects.filter(id__in=tasks_ids_array).distinct()
+
+                response = Response(
+                    {
+                        'profile': ProfileSerializer(profile).data,
+                        'my_solutions': SolutionSerializer(solutions, many=True).data,
+                        'solved_tasks': TaskSerializer(tasks, many=True).data,
+                    }
+                )
+
             except ProfileModel.DoesNotExist:
                 response = Response({'message': 'The item does not exist'}, status=HTTP_404_NOT_FOUND)
 
@@ -68,12 +84,12 @@ class TestAuthAPIView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request: Request) -> Response:
-        print(request.user.username)
         profile = ProfileModel.objects.get(user=request.user)
-        print(profile)
 
-        return Response({'user_id': profile.user.id,
-                         'username': profile.user.username
+        return Response({
+                         'user_id': profile.user.id,
+                         'username': profile.user.username,
+                         'profile': ProfileSerializer(profile).data,
                          },
                         status=HTTP_200_OK)
 
