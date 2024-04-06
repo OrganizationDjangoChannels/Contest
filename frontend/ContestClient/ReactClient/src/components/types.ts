@@ -57,6 +57,16 @@ export type SolutionCreate = {
     lang: string | null,
 }
 
+export type SolutionShowType = {
+    id: number,
+    created_at: string,
+    file: File | null,
+    lang: string | null,
+    points: number,
+    owner: Profile,
+    task: Task,
+}
+
 export type DifficultyTable = {
     1: string,
     2: string,

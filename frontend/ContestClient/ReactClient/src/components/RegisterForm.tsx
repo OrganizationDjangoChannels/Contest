@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import {axiosInstance} from "./AxiosInstance.ts";
 import {useCookies} from 'react-cookie';
 import {setToken} from "./Token.ts";
-import {useNavigate} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
+import Header from "./Header.tsx";
 
 
 
@@ -52,42 +53,49 @@ const RegisterForm: React.FC = () => {
     };
 
     return (
-        <form onSubmit={handleSubmit}>
-            <div className={"input-container"}>
-                <label htmlFor="username" className={"input-label"}>Username:</label>
-                <input
-                    className={"input-field"}
-                    type="text"
-                    id="username"
-                    name="username"
-                    value={user.username}
-                    onChange={handleInputChange}
-                />
+        <>
+            <Header/>
+            <form onSubmit={handleSubmit}>
+                <div className={"input-container"}>
+                    <label htmlFor="username" className={"input-label"}>Username:</label>
+                    <input
+                        className={"input-field"}
+                        type="text"
+                        id="username"
+                        name="username"
+                        value={user.username}
+                        onChange={handleInputChange}
+                    />
+                </div>
+                <div className={"input-container"}>
+                    <label htmlFor="password" className={"input-label"}>Password:</label>
+                    <input
+                        className={"input-field"}
+                        type="password"
+                        id="password"
+                        name="password"
+                        value={user.password}
+                        onChange={handleInputChange}
+                    />
+                </div>
+                <div className={"input-container"}>
+                    <label htmlFor="password" className={"input-label"}>Repeat password:</label>
+                    <input
+                        className={"input-field"}
+                        type="password"
+                        id="repeat_password"
+                        name="repeat_password"
+                        value={user.repeat_password}
+                        onChange={handleInputChange}
+                    />
+                </div>
+                <button type="submit" className={"submit-button"}>Register</button>
+            </form>
+            <div className={'login_form_footer'}>
+                Already have an account? &nbsp; &nbsp;
+                <Link to={`/login`} className={'custom_link'}>Log in</Link>
             </div>
-            <div className={"input-container"}>
-                <label htmlFor="password" className={"input-label"}>Password:</label>
-                <input
-                    className={"input-field"}
-                    type="password"
-                    id="password"
-                    name="password"
-                    value={user.password}
-                    onChange={handleInputChange}
-                />
-            </div>
-            <div className={"input-container"}>
-                <label htmlFor="password" className={"input-label"}>Repeat password:</label>
-                <input
-                    className={"input-field"}
-                    type="password"
-                    id="repeat_password"
-                    name="repeat_password"
-                    value={user.repeat_password}
-                    onChange={handleInputChange}
-                />
-            </div>
-            <button type="submit" className={"submit-button"}>Register</button>
-        </form>
+        </>
     );
 };
 

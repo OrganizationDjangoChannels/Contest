@@ -11,10 +11,11 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from rest_framework.exceptions import APIException
+from django.db.models import Max
 
 from .models import SolutionModel, ProfileModel, TaskModel, TestModel
 from .serializers import SolutionSerializer, UserSerializer, TaskSerializer, TestSerializer, ProfileSerializer
-from .services.files import get_cmd_commands_for_c_file, get_cmd_command, run_test
+from .services.files import get_cmd_commands_for_c_file, get_cmd_command, run_test, get_solution_status
 
 C_BIN_PATH = settings.C_BIN_PATH
 
@@ -46,7 +47,7 @@ class LoginAPIView(ObtainAuthToken):
 class ProfileAPIView(APIView):
     def get(self, request: Request, profile_id=None) -> Response:
 
-        if request.user.is_authenticated:  # get profile via token
+        if request.user.is_authenticated and profile_id is None:  # get profile via token
             profile = ProfileModel.objects.get(user=request.user)
             response = Response(ProfileSerializer(profile).data)
 
@@ -56,7 +57,23 @@ class ProfileAPIView(APIView):
         else:  # get profile by id
             try:
                 profile = ProfileModel.objects.get(id=profile_id)
-                response = Response(ProfileSerializer(profile).data)
+                solutions = SolutionModel.objects\
+                    .filter(owner=profile, status='solved')\
+                    .distinct('task', 'created_at')\
+                    .order_by('-created_at')
+                tasks_ids_array = []
+                for solution in solutions:
+                    tasks_ids_array.append(solution.task.id)
+                tasks = TaskModel.objects.filter(id__in=tasks_ids_array).distinct()
+
+                response = Response(
+                    {
+                        'profile': ProfileSerializer(profile).data,
+                        'my_solutions': SolutionSerializer(solutions, many=True).data,
+                        'solved_tasks': TaskSerializer(tasks, many=True).data,
+                    }
+                )
+
             except ProfileModel.DoesNotExist:
                 response = Response({'message': 'The item does not exist'}, status=HTTP_404_NOT_FOUND)
 
@@ -67,12 +84,12 @@ class TestAuthAPIView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request: Request) -> Response:
-        print(request.user.username)
         profile = ProfileModel.objects.get(user=request.user)
-        print(profile)
 
-        return Response({'user_id': profile.user.id,
-                         'username': profile.user.username
+        return Response({
+                         'user_id': profile.user.id,
+                         'username': profile.user.username,
+                         'profile': ProfileSerializer(profile).data,
                          },
                         status=HTTP_200_OK)
 
@@ -84,10 +101,10 @@ class TaskAPIView(APIView):
             by_myself = request.GET.get('by_myself', None)
             if by_myself == '1':
                 profile = ProfileModel.objects.get(user=request.user)
-                tasks = TaskModel.objects.filter(owner=profile).order_by('id')[0: 50]
+                tasks = TaskModel.objects.filter(owner=profile).order_by('-id')[0: 50]
                 response = Response(TaskSerializer(tasks, many=True).data)
             else:
-                tasks = TaskModel.objects.all().order_by('id')[0: 50]
+                tasks = TaskModel.objects.all().order_by('-id')[0: 50]
                 response = Response(TaskSerializer(tasks, many=True).data)
 
         else:
@@ -136,6 +153,20 @@ class TestAPIView(APIView):
 class SolutionAPIView(APIView):
     parser_classes = (MultiPartParser, FormParser)
 
+    def get(self, request: Request) -> Response:
+        task_id = request.GET.get('task_id', None)
+        profile = ProfileModel.objects.get(user=request.user)
+
+        if task_id is None:
+            solutions = SolutionModel.objects.all().order_by('-id')[0: 100]
+            response = Response(SolutionSerializer(solutions, many=True).data)
+
+        else:
+            solutions = SolutionModel.objects.filter(task__id=task_id).order_by('-id')[0: 100]
+            response = Response(SolutionSerializer(solutions, many=True).data)
+
+        return response
+
     def post(self, request: Request) -> Response:
         task = TaskModel.objects.get(id=request.data['task_id'])
         profile = ProfileModel.objects.get(user=request.user)
@@ -178,11 +209,33 @@ class SolutionAPIView(APIView):
 
             task.sent_solutions += 1
             task.save()
+
+            my_solution_max_points = SolutionModel.objects.filter(
+                owner=profile, task=task).aggregate(Max('points'))['points__max']
+
             solution.passed_tests = passed_tests
             solution.points = tests_count / passed_tests * 100 * task.level
+            solution.status = get_solution_status(solution.points, task.level)
+            solution.task = task
+            solution.owner = profile
             solution.save()
+
+            if my_solution_max_points:
+                if solution.points > my_solution_max_points:
+                    profile.points += (solution.points - my_solution_max_points)
+                    profile.save()
+            else:
+                profile.points += solution.points
+                profile.save()
 
             return Response(
                 {**serializer.data, 'passed_tests': passed_tests, 'points': solution.points},
                 status=HTTP_201_CREATED
             )
+
+
+class RatingsAPIView(APIView):
+    def get(self, request: Request) -> Response:
+        profiles = ProfileModel.objects.all().order_by('-points', 'id')[0:50]
+        response = Response(ProfileSerializer(profiles, many=True).data)
+        return response

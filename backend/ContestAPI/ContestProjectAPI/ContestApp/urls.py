@@ -11,6 +11,7 @@ urlpatterns = [
     path('api/v1/profile/<int:profile_id>/', views.ProfileAPIView.as_view()),
     path('api/v1/test/', views.TestAPIView.as_view()),
     path('api/v1/solution/', views.SolutionAPIView.as_view()),
+    path('api/v1/ratings/', views.RatingsAPIView.as_view()),
 
 ]
 

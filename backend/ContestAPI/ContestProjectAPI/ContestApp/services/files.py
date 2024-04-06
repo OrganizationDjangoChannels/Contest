@@ -65,3 +65,12 @@ def run_test(test, compile_command: str, environment=None) -> int:
     else:
         print(f'test #{test.test_number} failed')
         return 0
+
+
+def get_solution_status(points: int, level: int) -> str:
+    if points == 0:
+        return 'failed'
+    if 0 < points < 100 * level:
+        return 'partial'
+    if points == 100 * level:
+        return 'solved'
