@@ -2,9 +2,10 @@ import {ChangeEvent, useEffect, useState} from "react";
 import {axiosInstance} from "./AxiosInstance.ts";
 import {useCookies} from "react-cookie";
 import {TaskShow as TaskShowType} from "./types.ts";
-import TaskShow from "./TaskShow.tsx";
 import {level_to_string} from "./TestsDefault.ts";
 import Header from "./Header.tsx";
+import {Link} from "react-router-dom";
+import TaskShow from "./TaskShow.tsx";
 
 type TasksPropTypes = {
     by_myself: number,
@@ -78,6 +79,14 @@ const Tasks = (props: TasksPropTypes) => {
         <>
             <Header/>
             <h2>Tasks</h2>
+            <div>
+                <Link to={`../create-task`} className={'custom_link'}>
+                    <button className={'logout-button'}>
+                        Create a new task
+                    </button>
+                </Link>
+            </div>
+
             <span className={'langs_selection'}>
                         <input type={'checkbox'} id={'easy_level'} name={'1'}
                                checked={showLevels['1']} onChange={handleOnChangeLevel}/>
@@ -103,7 +112,7 @@ const Tasks = (props: TasksPropTypes) => {
             </span>
 
             {tasks ? tasks.map((task: TaskShowType) => (
-                <TaskShow task={task} key={task.id}/>
+                <TaskShow task={task} show_description={false} key={task.id}/>
             )) : <div>No tasks</div>}
         </>
 

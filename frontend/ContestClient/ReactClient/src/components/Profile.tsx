@@ -41,7 +41,7 @@ const ProfileShow = () => {
         console.log(cookie.profile);
     }, []);
     return (
-        <>
+        <div className={'main_container'}>
             <Header/>
             <div className={'flex_container_vertical'}>
 
@@ -71,7 +71,7 @@ const ProfileShow = () => {
                 </div>
 
             </div>
-        </>
+        </div>
     );
 };
 
