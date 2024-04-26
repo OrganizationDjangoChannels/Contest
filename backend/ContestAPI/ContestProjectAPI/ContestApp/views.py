@@ -12,6 +12,7 @@ from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from rest_framework.exceptions import APIException
 from django.db.models import Max
+from django.core.cache import cache
 
 from .models import SolutionModel, ProfileModel, TaskModel, TestModel
 from .serializers import SolutionSerializer, UserSerializer, TaskSerializer, TestSerializer, ProfileSerializer
@@ -56,23 +57,43 @@ class ProfileAPIView(APIView):
             response = Response(ProfileSerializer(profiles, many=True).data)
         else:  # get profile by id
             try:
-                profile = ProfileModel.objects.get(id=profile_id)
-                solutions = SolutionModel.objects\
-                    .filter(owner=profile, status='solved')\
-                    .distinct('task', 'created_at')\
-                    .order_by('-created_at')
-                tasks_ids_array = []
-                for solution in solutions:
-                    tasks_ids_array.append(solution.task.id)
-                tasks = TaskModel.objects.filter(id__in=tasks_ids_array).distinct()
+                profile_cache = cache.get_many([f'profile_by_id_{profile_id}',
+                                                f'solution_by_profile_{profile_id}',
+                                                f'solved_tasks_by_profile_{profile_id}'])
+                if f'profile_by_id_{profile_id}' in profile_cache \
+                        and f'solution_by_profile_{profile_id}' in profile_cache \
+                        and f'solved_tasks_by_profile_{profile_id}' in profile_cache:
+                    response_data = {
+                        'profile': profile_cache[f'profile_by_id_{profile_id}'],
+                        'my_solutions': profile_cache[f'solution_by_profile_{profile_id}'],
+                        'solved_tasks': profile_cache[f'solved_tasks_by_profile_{profile_id}'],
+                    }
+                    print(f'fetched from cache by many keys (profile, solutions, tasks)')
 
-                response = Response(
-                    {
+                else:
+                    profile = ProfileModel.objects.get(id=profile_id)
+                    solutions = SolutionModel.objects \
+                        .filter(owner=profile, status='solved') \
+                        .distinct('task', 'created_at') \
+                        .order_by('-created_at')
+                    tasks_ids_array = []
+                    for solution in solutions:
+                        tasks_ids_array.append(solution.task.id)
+                    tasks = TaskModel.objects.filter(id__in=tasks_ids_array).distinct()
+                    response_data = {
                         'profile': ProfileSerializer(profile).data,
                         'my_solutions': SolutionSerializer(solutions, many=True).data,
                         'solved_tasks': TaskSerializer(tasks, many=True).data,
                     }
-                )
+                    cache.set_many(
+                        {
+                            f'profile_by_id_{profile_id}': ProfileSerializer(profile).data,
+                            f'solution_by_profile_{profile_id}': SolutionSerializer(solutions, many=True).data,
+                            f'solved_tasks_by_profile_{profile_id}': TaskSerializer(tasks, many=True).data,
+                        }
+                    )
+
+                response = Response(response_data)
 
             except ProfileModel.DoesNotExist:
                 response = Response({'message': 'The item does not exist'}, status=HTTP_404_NOT_FOUND)
@@ -87,11 +108,11 @@ class TestAuthAPIView(APIView):
         profile = ProfileModel.objects.get(user=request.user)
 
         return Response({
-                         'user_id': profile.user.id,
-                         'username': profile.user.username,
-                         'profile': ProfileSerializer(profile).data,
-                         },
-                        status=HTTP_200_OK)
+            'user_id': profile.user.id,
+            'username': profile.user.username,
+            'profile': ProfileSerializer(profile).data,
+        },
+            status=HTTP_200_OK)
 
 
 class TaskAPIView(APIView):
@@ -100,16 +121,34 @@ class TaskAPIView(APIView):
         if task_id is None:
             by_myself = request.GET.get('by_myself', None)
             if by_myself == '1':
-                profile = ProfileModel.objects.get(user=request.user)
-                tasks = TaskModel.objects.filter(owner=profile).order_by('-id')[0: 50]
-                response = Response(TaskSerializer(tasks, many=True).data)
+                my_tasks_cache = cache.get(f'tasks_by_user_{request.user.id}')
+                if my_tasks_cache:
+                    my_tasks = my_tasks_cache
+                    print(f'fetched from cache by key = tasks_by_user_{request.user.id}')
+                else:
+                    profile = ProfileModel.objects.get(user=request.user)
+                    my_tasks = TaskModel.objects.filter(owner=profile).order_by('-id')[0: 50]
+                    cache.set(f'tasks_by_user_{request.user.id}', my_tasks)
+                response = Response(TaskSerializer(my_tasks, many=True).data)
             else:
-                tasks = TaskModel.objects.all().order_by('-id')[0: 50]
+                tasks_cache = cache.get(settings.TASKS_CACHE_NAME)
+                if tasks_cache:
+                    tasks = tasks_cache
+                    print(f'fetched from cache by key = {settings.TASKS_CACHE_NAME}')
+                else:
+                    tasks = TaskModel.objects.all().order_by('-id')[0: 50]
+                    cache.set(settings.TASKS_CACHE_NAME, tasks)
                 response = Response(TaskSerializer(tasks, many=True).data)
 
         else:
             try:
-                task = TaskModel.objects.get(id=task_id)
+                task_cache = cache.get(f'task_{task_id}')
+                if task_cache:
+                    task = task_cache
+                    print(f'fetched from cache by key = task_{task_id}')
+                else:
+                    task = TaskModel.objects.get(id=task_id)
+                    cache.set(f'task_{task_id}', task)
                 response = Response(TaskSerializer(task).data)
             except TaskModel.DoesNotExist:
                 response = Response({'message': 'The item does not exist'}, status=HTTP_404_NOT_FOUND)
@@ -122,6 +161,8 @@ class TaskAPIView(APIView):
 
         if serializer.is_valid(raise_exception=True):
             serializer.save()
+            cache.delete(settings.TASKS_CACHE_NAME)
+            cache.delete(f'tasks_by_user_{request.user.id}')
             return Response(serializer.data, status=HTTP_201_CREATED)
 
 
@@ -155,14 +196,19 @@ class SolutionAPIView(APIView):
 
     def get(self, request: Request) -> Response:
         task_id = request.GET.get('task_id', None)
-        profile = ProfileModel.objects.get(user=request.user)
 
-        if task_id is None:
+        if task_id is None:  # it should never be used
             solutions = SolutionModel.objects.all().order_by('-id')[0: 100]
             response = Response(SolutionSerializer(solutions, many=True).data)
 
         else:
-            solutions = SolutionModel.objects.filter(task__id=task_id).order_by('-id')[0: 100]
+            solutions_cache = cache.get(f'solutions_by_task_{task_id}')
+            if solutions_cache:
+                solutions = solutions_cache
+                print(f'fetched from cache by key = solutions_by_task_{task_id}')
+            else:
+                solutions = SolutionModel.objects.filter(task__id=task_id).order_by('-id')[0: 100]
+                cache.set(f'solutions_by_task_{task_id}', solutions)
             response = Response(SolutionSerializer(solutions, many=True).data)
 
         return response
@@ -236,6 +282,12 @@ class SolutionAPIView(APIView):
 
 class RatingsAPIView(APIView):
     def get(self, request: Request) -> Response:
-        profiles = ProfileModel.objects.all().order_by('-points', 'id')[0:50]
-        response = Response(ProfileSerializer(profiles, many=True).data)
+        ratings_cache = cache.get(settings.RATINGS_CACHE_NAME)
+        if ratings_cache:
+            ratings = ratings_cache
+            print(f'fetched from cache by key = {settings.RATINGS_CACHE_NAME}')
+        else:
+            ratings = ProfileModel.objects.all().order_by('-points', 'id')[0:50]
+            cache.set(settings.RATINGS_CACHE_NAME, ratings)
+        response = Response(ProfileSerializer(ratings, many=True).data)
         return response

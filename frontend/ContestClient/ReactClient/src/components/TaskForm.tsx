@@ -4,6 +4,7 @@ import {axiosInstance} from "./AxiosInstance.ts";
 import {useCookies} from "react-cookie";
 import TestCreate from "./TestCreate.tsx";
 import {empty_tests} from "./TestsDefault.ts";
+import Header from "./Header.tsx";
 
 const TaskForm = () => {
     const [cookie] = useCookies(['token']);
@@ -89,8 +90,9 @@ const TaskForm = () => {
     }
 
     return (
-        <>
-            <h3>Create your task</h3>
+        <div className={'main_container'}>
+            <Header/>
+            <h2>Create your task</h2>
             <form onSubmit={handleOnSubmitTaskForm}>
                 <div className={"flex_container_vertical"}>
                     <div className={'title_label_container'}>
@@ -186,7 +188,7 @@ const TaskForm = () => {
 
                 <button type="submit" className={"submit-button"}>Create</button>
             </form>
-        </>
+        </div>
     );
 };
 

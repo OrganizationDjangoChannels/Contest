@@ -40,6 +40,9 @@ const Header = () => {
             <div className={'header_container_item'}>
                 <Link to={`/tasks`} className={'custom_link'}>{'Tasks'}</Link>
             </div>
+            <div className={'header_container_item'}>
+                <Link to={`/ratings`} className={'custom_link'}>{'Ratings'}</Link>
+            </div>
             {cookie.profile ?
                 (<div className={'header_container_item'}>
                     <Link to={`../user/${cookie.profile.id}`} className={'custom_link'}>{cookie.profile.user.username}</Link>

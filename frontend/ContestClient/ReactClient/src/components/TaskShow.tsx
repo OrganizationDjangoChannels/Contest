@@ -4,10 +4,11 @@ import {Link} from "react-router-dom";
 
 type TaskItemPropTypes = {
     task: TaskShowType,
+    show_description: boolean,
 }
 
 // shows in tasks
-const TaskShow = ({task} : TaskItemPropTypes) => {
+const TaskShow = ({task, show_description} : TaskItemPropTypes) => {
     const task_level = level_to_string(task.level);
     return (
         <>
@@ -18,10 +19,13 @@ const TaskShow = ({task} : TaskItemPropTypes) => {
                     </div>
                     <div className={'task_header_item task_title'}>{task.title}</div>
                 </div>
-                <div className={'task_description'}>
-                    {task.description}
-                </div>
-                <div>
+                {show_description &&
+                    (<div className={'task_description'}>
+                        {task.description}
+                    </div>)
+                }
+
+                <div style={{marginTop: '12px'}}>
                     <div>{task_level} level</div>
                 </div>
                 <div>

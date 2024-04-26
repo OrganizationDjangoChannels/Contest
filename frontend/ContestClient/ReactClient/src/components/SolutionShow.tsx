@@ -22,7 +22,7 @@ const SolutionShow = ({solution, showTaskId}: SolutionShowPropTypes) => {
                 </td>)
                 :
                 (<td>
-                    <Link to={`../user/${solution.owner.id}`} className={'custom_link'}>{solution.owner.user.username}</Link>
+                    <Link to={`../user/${solution.owner.id}`} className={'profile_link'}>{solution.owner.user.username}</Link>
                 </td>)
             }
             <td>{created_date.toLocaleString()}</td>

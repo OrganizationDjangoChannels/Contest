@@ -71,14 +71,6 @@ const Task = () => {
                 <div>owner: {task ? task.owner?.user?.username: ''}</div>
             </div>
 
-            {/*<div>*/}
-            {/*    Tests:*/}
-            {/*</div>*/}
-            {/*{tests ?*/}
-            {/*    tests.map(test => <Test test={test} key={test.id}/>)*/}
-            {/*    : ''*/}
-            {/*}*/}
-
             <SolutionForm
                 solution={solution}
                 setSolution={setSolution}

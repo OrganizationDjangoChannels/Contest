@@ -3,6 +3,7 @@ import {useEffect, useState} from "react";
 import {axiosInstance} from "./AxiosInstance.ts";
 import {Profile} from "./types.ts";
 import RatingsItem from "./RatingsItem.tsx";
+import Header from "./Header.tsx";
 
 const Ratings = () => {
     const [cookie] = useCookies(['token']);
@@ -21,7 +22,8 @@ const Ratings = () => {
 
     }, []);
     return (
-        <>
+        <div className={'main_container'}>
+            <Header/>
             <h2>Ratings</h2>
             <table className={'solutions_table'}>
                 <thead>
@@ -40,7 +42,7 @@ const Ratings = () => {
 
             </table>
 
-        </>
+        </div>
     );
 };
 

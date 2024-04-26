@@ -10,13 +10,9 @@ const Home = () => {
     }, []);
 
     return (
-        <>
+        <div className={'main_container'}>
             <Header/>
-            <div>
-                Home Page
-            </div>
-
-        </>
+        </div>
 
     );
 };

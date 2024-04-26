@@ -163,3 +163,15 @@ JAVA_COMPILER_LOCAL_PATH = os.path.join(COMPILERS_ROOT, os.getenv('JAVA_COMPILER
 C_COMPILER_LOCAL_PATH = os.path.join(COMPILERS_ROOT, os.getenv('C_COMPILER_PATH'))
 C_PLUS_PLUS_COMPILER_LOCAL_PATH = os.path.join(COMPILERS_ROOT, os.getenv('C_PLUS_PLUS_COMPILER_PATH'))
 C_BIN_PATH = os.path.join(COMPILERS_ROOT, os.getenv('C_BIN_PATH'))
+
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379",
+        "TIMEOUT": 30,
+    }
+}
+
+TASKS_CACHE_NAME = 'tasks'
+RATINGS_CACHE_NAME = 'ratings'
