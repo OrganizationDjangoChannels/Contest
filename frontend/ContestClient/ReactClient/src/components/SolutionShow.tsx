@@ -1,4 +1,4 @@
-import {SolutionShowType} from "./types.ts";
+import {SolutionShowType} from "../types/types.ts";
 import {Link} from "react-router-dom";
 import {useCookies} from "react-cookie";
 

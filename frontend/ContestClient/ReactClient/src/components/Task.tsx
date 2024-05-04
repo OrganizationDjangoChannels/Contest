@@ -2,17 +2,19 @@ import {useParams} from "react-router-dom";
 import {useEffect, useState} from "react";
 import {axiosInstance} from "./AxiosInstance.ts";
 import {useCookies} from "react-cookie";
-import {SolutionCreate, SolutionShowType, Task as TaskType} from "./types.ts";
+import {SolutionCreate, SolutionShowType, Task as TaskType} from "../types/types.ts";
 import SolutionForm from "./SolutionForm.tsx";
-import {level_to_string} from "./TestsDefault.ts";
+import {level_to_string} from "../defaults/TestsDefault.ts";
 import SolutionsTable from "./SolutionsTable.tsx";
 import Header from "./Header.tsx";
+import LoadingStatus from "./LoadingStatus.tsx";
 
 
 const Task = () => {
     const [cookie] = useCookies(['token']);
     const {id} = useParams();
     const [task, setTask] = useState<TaskType>();
+    const [loading, setLoading] = useState<boolean>(false);
 
     const [solution,
         setSolution] = useState<SolutionCreate>({
@@ -33,7 +35,10 @@ const Task = () => {
                     setTask(response.data);
                     console.log(response.data);
                 })
-                .catch((error) => {console.log(error)})
+                .catch((error) => {
+                    setLoading(false);
+                    console.log(error)
+                })
         }
     }
 
@@ -49,13 +54,18 @@ const Task = () => {
         )
             .then((response) => {
                 setSolutions(response.data);
+                setLoading(false);
                 console.log(response);
             })
-            .catch((error) => {console.log(error)})
+            .catch((error) => {
+                setLoading(false);
+                console.log(error)
+            })
     }
 
     useEffect( () => {
         if (cookie.token){
+            setLoading(true);
             getTask();
             getSolutions();
         }
@@ -64,25 +74,29 @@ const Task = () => {
     return (
         <>
             <Header/>
-            <div className={'task_show_container'}>
-                <div><strong>{task ? task.title: ''}</strong></div>
-                <div className={'task_description'}>{task ? task.description: ''}</div>
-                <div>level: {task ? level_to_string(task.level) : ''}</div>
-                <div>owner: {task ? task.owner?.user?.username: ''}</div>
-            </div>
+            {loading ? <LoadingStatus/> :
+            <>
 
-            <SolutionForm
-                solution={solution}
-                setSolution={setSolution}
-                task_id={task ? task.id : null}
-                task_langs={task ? task.langs : null}
-            />
+                <div className={'task_show_container'}>
+                    <div><strong>{task ? task.title: ''}</strong></div>
+                    <div className={'task_description'}>{task ? task.description: ''}</div>
+                    <div>level: {task ? level_to_string(task.level) : ''}</div>
+                    <div>owner: {task ? task.owner?.user?.username: ''}</div>
+                </div>
 
-            <div className={'solutions_table_container'}>
-                {solutions ? (<SolutionsTable solutions={solutions} showTaskId={false}/>) : ''}
+                <SolutionForm
+                    solution={solution}
+                    setSolution={setSolution}
+                    task_id={task ? task.id : null}
+                    task_langs={task ? task.langs : null}
+                />
 
-            </div>
+                <div className={'solutions_table_container'}>
+                    {solutions ? (<SolutionsTable solutions={solutions} showTaskId={false}/>) : ''}
 
+                </div>
+            </>
+            }
 
         </>
 

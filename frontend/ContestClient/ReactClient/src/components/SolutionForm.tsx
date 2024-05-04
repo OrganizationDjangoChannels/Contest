@@ -1,8 +1,8 @@
 import {ChangeEvent, Dispatch, FormEvent, SetStateAction, useState} from "react";
-import {SolutionCreate} from "./types.ts";
+import {SolutionCreate} from "../types/types.ts";
 import {axiosFileUploadInstance} from "./AxiosInstance.ts";
 import {useCookies} from "react-cookie";
-import {parse_langs} from "./TestsDefault.ts";
+import {parse_langs} from "../defaults/TestsDefault.ts";
 
 type SolutionFormPropTypes = {
     solution: SetStateAction<SolutionCreate>,

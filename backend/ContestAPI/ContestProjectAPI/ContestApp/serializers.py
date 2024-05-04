@@ -14,9 +14,6 @@ class CustomBaseSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True, required=False)
 
 
-
-
-
 class UserSerializer(CustomBaseSerializer):
     username = serializers.CharField(max_length=255)
     password = serializers.CharField(max_length=255, write_only=True)
@@ -37,8 +34,8 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProfileModel
-        fields = ('id', 'user', 'points', 'solved_tasks')
-        read_only_fields = ('id', )
+        fields = ('id', 'user', 'points', 'solved_tasks', 'created_at')
+        read_only_fields = ('id', 'created_at', 'updated_at')
 
 
 class TaskSerializer(serializers.ModelSerializer):

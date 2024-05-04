@@ -1,6 +1,6 @@
 
 import SolutionShow from "./SolutionShow.tsx";
-import {SolutionShowType} from "./types.ts";
+import {SolutionShowType} from "../types/types.ts";
 
 
 type SolutionShowPropTypes = {

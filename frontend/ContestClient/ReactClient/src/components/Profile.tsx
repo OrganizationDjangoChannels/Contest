@@ -1,5 +1,5 @@
-import {Profile, SolutionShowType} from "./types.ts";
-import {TaskShow as TaskShowType} from "./types.ts";
+import {Profile, SolutionShowType} from "../types/types.ts";
+import {TaskShow as TaskShowType} from "../types/types.ts";
 import {useNavigate, useParams} from "react-router-dom";
 import {useEffect, useState} from "react";
 import {axiosInstance} from "./AxiosInstance.ts";
@@ -8,6 +8,7 @@ import SolutionsTable from "./SolutionsTable.tsx";
 import TaskShowShort from "./TaskShowShort.tsx";
 import {logout} from "./logout.ts";
 import Header from "./Header.tsx";
+import LoadingStatus from "./LoadingStatus.tsx";
 
 
 const ProfileShow = () => {
@@ -19,9 +20,11 @@ const ProfileShow = () => {
         useState<SolutionShowType[]>();
     const [solvedTasks, setSolvedTasks] =
         useState<TaskShowType[]>();
+    const [loading, setLoading] = useState<boolean>(false);
 
     const getProfile = () => {
         axiosInstance.defaults.headers.get['Authorization'] = `Token ${cookie.token}`;
+        setLoading(true);
         axiosInstance.get(
             `api/v1/profile/${id}/`,
         )
@@ -29,9 +32,13 @@ const ProfileShow = () => {
                 setProfile(response.data.profile);
                 setMySolutions(response.data.my_solutions);
                 setSolvedTasks(response.data.solved_tasks);
+                setLoading(false);
                 console.log(response);
             })
-            .catch((error) => {console.log(error)})
+            .catch((error) => {
+                setLoading(false);
+                console.log(error);
+            })
     }
 
     useEffect( () => {
@@ -45,10 +52,14 @@ const ProfileShow = () => {
             <Header/>
             <div className={'flex_container_vertical'}>
 
-                {cookie?.profile?.id === profile?.id ?
-                    (<h2>My successful solutions</h2>) :
-                    (<h2>{profile?.user.username}'s successful solutions</h2>)
+                {profile ?
+                    cookie?.profile?.id === profile ?
+                        (<h2>My successful solutions</h2>) :
+                        (<h2>{profile?.user.username}'s successful solutions</h2>)
+                    : <h2></h2>
                 }
+
+
                 {
                     mySolutions ? <SolutionsTable solutions={mySolutions} showTaskId={true}/> : ''
                 }
@@ -69,6 +80,8 @@ const ProfileShow = () => {
                         logout
                     </button>
                 </div>
+
+                {loading && <LoadingStatus/>}
 
             </div>
         </div>

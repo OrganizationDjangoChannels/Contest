@@ -1,4 +1,4 @@
-import {DifficultyTable, Langs, Test} from "./types.ts";
+import {DifficultyTable, Langs, Test} from "../types/types.ts";
 
 export const tests_max_number = 100;
 
@@ -59,4 +59,6 @@ export const level_to_string = (level: number): string | null => {
     }
     return null;
 }
+
+export const RATINGS_LIMIT = 8;  // should be the same as on server
 

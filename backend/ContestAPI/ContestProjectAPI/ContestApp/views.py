@@ -1,6 +1,7 @@
 import subprocess
 import os
 
+import redis.exceptions
 from django.conf import settings
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -57,10 +58,17 @@ class ProfileAPIView(APIView):
             response = Response(ProfileSerializer(profiles, many=True).data)
         else:  # get profile by id
             try:
-                profile_cache = cache.get_many([f'profile_by_id_{profile_id}',
-                                                f'solution_by_profile_{profile_id}',
-                                                f'solved_tasks_by_profile_{profile_id}'])
-                if f'profile_by_id_{profile_id}' in profile_cache \
+                profile_cache = None
+                redis_connection = True
+                try:
+                    profile_cache = cache.get_many([f'profile_by_id_{profile_id}',
+                                                    f'solution_by_profile_{profile_id}',
+                                                    f'solved_tasks_by_profile_{profile_id}'])
+                except redis.exceptions.ConnectionError as RedisConnectionError:
+                    redis_connection = False
+                    print(f'{RedisConnectionError = }')
+
+                if profile_cache and f'profile_by_id_{profile_id}' in profile_cache \
                         and f'solution_by_profile_{profile_id}' in profile_cache \
                         and f'solved_tasks_by_profile_{profile_id}' in profile_cache:
                     response_data = {
@@ -85,13 +93,14 @@ class ProfileAPIView(APIView):
                         'my_solutions': SolutionSerializer(solutions, many=True).data,
                         'solved_tasks': TaskSerializer(tasks, many=True).data,
                     }
-                    cache.set_many(
-                        {
-                            f'profile_by_id_{profile_id}': ProfileSerializer(profile).data,
-                            f'solution_by_profile_{profile_id}': SolutionSerializer(solutions, many=True).data,
-                            f'solved_tasks_by_profile_{profile_id}': TaskSerializer(tasks, many=True).data,
-                        }
-                    )
+                    if redis_connection:
+                        cache.set_many(
+                            {
+                                f'profile_by_id_{profile_id}': ProfileSerializer(profile).data,
+                                f'solution_by_profile_{profile_id}': SolutionSerializer(solutions, many=True).data,
+                                f'solved_tasks_by_profile_{profile_id}': TaskSerializer(tasks, many=True).data,
+                            }
+                        )
 
                 response = Response(response_data)
 
@@ -120,35 +129,64 @@ class TaskAPIView(APIView):
     def get(self, request: Request, task_id=None) -> Response:
         if task_id is None:
             by_myself = request.GET.get('by_myself', None)
+            page = int(request.GET.get('page', 0))
             if by_myself == '1':
-                my_tasks_cache = cache.get(f'tasks_by_user_{request.user.id}')
+                my_tasks_cache = None
+                redis_connection = True
+                try:
+                    my_tasks_cache = cache.get(f'tasks_by_user_{request.user.id}_on_page_{page}')
+                except redis.exceptions.ConnectionError as RedisConnectionError:
+                    redis_connection = False
+                    print(f'{RedisConnectionError = }')
+
                 if my_tasks_cache:
                     my_tasks = my_tasks_cache
-                    print(f'fetched from cache by key = tasks_by_user_{request.user.id}')
+                    print(f'fetched from cache by key = tasks_by_user_{request.user.id}_on_page_{page}')
                 else:
                     profile = ProfileModel.objects.get(user=request.user)
-                    my_tasks = TaskModel.objects.filter(owner=profile).order_by('-id')[0: 50]
-                    cache.set(f'tasks_by_user_{request.user.id}', my_tasks)
+                    my_tasks = (TaskModel.objects
+                                .filter(owner=profile)
+                                .order_by('-id')[page * settings.TASKS_LIMIT:
+                                                 (page + 1) * settings.TASKS_LIMIT])
+                    if redis_connection:
+                        cache.set(f'tasks_by_user_{request.user.id}_on_page_{page}', my_tasks)
                 response = Response(TaskSerializer(my_tasks, many=True).data)
             else:
-                tasks_cache = cache.get(settings.TASKS_CACHE_NAME)
+                tasks_cache = None
+                redis_connection = True
+                try:
+                    tasks_cache = cache.get(f'{settings.TASKS_CACHE_NAME}_on_page_{page}')
+                except redis.exceptions.ConnectionError as RedisConnectionError:
+                    redis_connection = False
+                    print(f'{RedisConnectionError = }')
+
                 if tasks_cache:
                     tasks = tasks_cache
-                    print(f'fetched from cache by key = {settings.TASKS_CACHE_NAME}')
+                    print(f'fetched from cache by key = {settings.TASKS_CACHE_NAME}_on_page_{page}')
                 else:
-                    tasks = TaskModel.objects.all().order_by('-id')[0: 50]
-                    cache.set(settings.TASKS_CACHE_NAME, tasks)
+                    tasks = (TaskModel.objects.all()
+                             .order_by('-id')[page * settings.TASKS_LIMIT:(page + 1) * settings.TASKS_LIMIT])
+                    if redis_connection:
+                        cache.set(f'{settings.TASKS_CACHE_NAME}_on_page_{page}', tasks)
                 response = Response(TaskSerializer(tasks, many=True).data)
 
         else:
             try:
-                task_cache = cache.get(f'task_{task_id}')
+                task_cache = None
+                redis_connection = True
+                try:
+                    task_cache = cache.get(f'task_{task_id}')
+                except redis.exceptions.ConnectionError as RedisConnectionError:
+                    redis_connection = False
+                    print(f'{RedisConnectionError = }')
+
                 if task_cache:
                     task = task_cache
                     print(f'fetched from cache by key = task_{task_id}')
                 else:
                     task = TaskModel.objects.get(id=task_id)
-                    cache.set(f'task_{task_id}', task)
+                    if redis_connection:
+                        cache.set(f'task_{task_id}', task)
                 response = Response(TaskSerializer(task).data)
             except TaskModel.DoesNotExist:
                 response = Response({'message': 'The item does not exist'}, status=HTTP_404_NOT_FOUND)
@@ -202,13 +240,21 @@ class SolutionAPIView(APIView):
             response = Response(SolutionSerializer(solutions, many=True).data)
 
         else:
-            solutions_cache = cache.get(f'solutions_by_task_{task_id}')
+            solutions_cache = None
+            redis_connection = True
+            try:
+                solutions_cache = cache.get(f'solutions_by_task_{task_id}')
+            except redis.exceptions.ConnectionError as RedisConnectionError:
+                redis_connection = False
+                print(f'{RedisConnectionError = }')
+
             if solutions_cache:
                 solutions = solutions_cache
                 print(f'fetched from cache by key = solutions_by_task_{task_id}')
             else:
                 solutions = SolutionModel.objects.filter(task__id=task_id).order_by('-id')[0: 100]
-                cache.set(f'solutions_by_task_{task_id}', solutions)
+                if redis_connection:
+                    cache.set(f'solutions_by_task_{task_id}', solutions)
             response = Response(SolutionSerializer(solutions, many=True).data)
 
         return response
@@ -282,12 +328,22 @@ class SolutionAPIView(APIView):
 
 class RatingsAPIView(APIView):
     def get(self, request: Request) -> Response:
-        ratings_cache = cache.get(settings.RATINGS_CACHE_NAME)
+        page = int(request.GET.get('page', 0))
+        ratings_cache = None
+        redis_connection = True
+        try:
+            ratings_cache = cache.get(settings.RATINGS_CACHE_NAME)
+        except redis.exceptions.ConnectionError as RedisConnectionError:
+            redis_connection = False
+            print(f'{RedisConnectionError = }')
+
         if ratings_cache:
             ratings = ratings_cache
             print(f'fetched from cache by key = {settings.RATINGS_CACHE_NAME}')
         else:
-            ratings = ProfileModel.objects.all().order_by('-points', 'id')[0:50]
-            cache.set(settings.RATINGS_CACHE_NAME, ratings)
+            ratings = (ProfileModel.objects.all()
+                       .order_by('-points', '-id')[page * settings.RATINGS_LIMIT:(page + 1) * settings.RATINGS_LIMIT])
+            if redis_connection:
+                cache.set(settings.RATINGS_CACHE_NAME, ratings)
         response = Response(ProfileSerializer(ratings, many=True).data)
         return response

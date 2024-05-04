@@ -1,6 +1,6 @@
 
 import {ChangeEvent, Dispatch, SetStateAction} from "react";
-import {Test} from "./types.ts";
+import {Test} from "../types/types.ts";
 
 type TestCreateProps = {
     test_number: number,

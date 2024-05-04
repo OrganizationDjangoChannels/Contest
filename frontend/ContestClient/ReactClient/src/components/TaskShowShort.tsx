@@ -1,4 +1,4 @@
-import {TaskShow as TaskShowType} from "./types.ts";
+import {TaskShow as TaskShowType} from "../types/types.ts";
 import {Link} from "react-router-dom";
 
 type TaskItemPropTypes = {
