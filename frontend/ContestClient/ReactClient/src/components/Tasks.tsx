@@ -1,11 +1,13 @@
 import {ChangeEvent, useEffect, useState} from "react";
 import {axiosInstance} from "./AxiosInstance.ts";
 import {useCookies} from "react-cookie";
-import {TaskShow as TaskShowType} from "./types.ts";
-import {level_to_string} from "./TestsDefault.ts";
+import {TaskShow as TaskShowType} from "../types/types.ts";
+import {level_to_string} from "../defaults/TestsDefault.ts";
 import Header from "./Header.tsx";
 import {Link} from "react-router-dom";
 import TaskShow from "./TaskShow.tsx";
+import Pagination from "./Pagination.tsx";
+import LoadingStatus from "./LoadingStatus.tsx";
 
 type TasksPropTypes = {
     by_myself: number,
@@ -16,14 +18,17 @@ const Tasks = (props: TasksPropTypes) => {
 
     const [cookie] = useCookies(['token']);
     const [tasks, setTasks] = useState<Array<TaskShowType>>();
-    const [allTasks, setAllTasks] = useState<Array<TaskShowType>>();
     const [showLevels, setShowLevels] =
         useState({
         1: true,
         2: true,
         3: true,
     });
+    const [page, setPage] = useState<number>(0);
+    const [loading, setLoading] = useState<boolean>(false);
     let filtered_levels = {'1': true, '2': true, '3': true};
+
+
 
     const handleOnChangeLevel = (e: ChangeEvent<HTMLInputElement>) => {
         setShowLevels({
@@ -32,6 +37,7 @@ const Tasks = (props: TasksPropTypes) => {
         })
         // @ts-ignore
         filtered_levels[e.target.name] = e.target.checked;
+        let allTasks = tasks;
         if (allTasks){
             let filtered_tasks
                 = [...allTasks.filter((task) => {
@@ -52,28 +58,26 @@ const Tasks = (props: TasksPropTypes) => {
 
     }
 
-    const getTasks = () => {
+    const getTasks = async() => {
         axiosInstance.defaults.headers.get['Authorization'] = `Token ${cookie.token}`;
-        axiosInstance.get(
-            'api/v1/task/',
-            {
-                params: {...props},
-            }
-        )
-            .then((response) => {
-                setTasks(response.data);
-                setAllTasks(response.data);
-                console.log(response);
-            })
-            .catch((error) => {console.log(error)})
+        setLoading(true);
+        try {
+            const response = await axiosInstance.get('api/v1/task/',
+                {params: {...props, page: page},})
+            setTasks(response.data);
+            setLoading(false);
+        } catch (error) {
+            setLoading(false);
+            console.log(error);
+        }
+
     }
 
-
-    useEffect( () => {
+    useEffect(() =>{
         if (cookie.token){
-            getTasks();
+            getTasks().then(response => console.log(response));
         }
-    }, []);
+    }, [page])
 
     return (
         <>
@@ -111,9 +115,14 @@ const Tasks = (props: TasksPropTypes) => {
                         </label>
             </span>
 
-            {tasks ? tasks.map((task: TaskShowType) => (
+            {tasks && tasks.map((task: TaskShowType) => (
                 <TaskShow task={task} show_description={false} key={task.id}/>
-            )) : <div>No tasks</div>}
+            ))}
+
+            <Pagination page={page} setPage={setPage}/>
+
+            {loading && <LoadingStatus/>}
+
         </>
 
     );

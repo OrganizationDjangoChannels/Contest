@@ -1,5 +1,5 @@
-import {TaskShow as TaskShowType} from "./types.ts";
-import {level_to_string} from "./TestsDefault.ts";
+import {TaskShow as TaskShowType} from "../types/types.ts";
+import {level_to_string} from "../defaults/TestsDefault.ts";
 import {Link} from "react-router-dom";
 
 type TaskItemPropTypes = {

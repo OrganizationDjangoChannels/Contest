@@ -45,7 +45,9 @@ const Header = () => {
             </div>
             {cookie.profile ?
                 (<div className={'header_container_item'}>
-                    <Link to={`../user/${cookie.profile.id}`} className={'custom_link'}>{cookie.profile.user.username}</Link>
+                    <Link to={`../user/${cookie.profile.id}`}
+                          reloadDocument={true}
+                          className={'custom_link'}>{cookie.profile.user.username}</Link>
                 </div>)
                 :
                 (<div className={'header_container_item'}>

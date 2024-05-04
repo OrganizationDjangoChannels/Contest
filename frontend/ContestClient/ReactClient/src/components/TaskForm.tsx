@@ -1,9 +1,9 @@
 import {ChangeEvent, FormEvent, useState} from "react";
-import {Langs, Task, Test} from "./types.ts";
+import {Langs, Task, Test} from "../types/types.ts";
 import {axiosInstance} from "./AxiosInstance.ts";
 import {useCookies} from "react-cookie";
 import TestCreate from "./TestCreate.tsx";
-import {empty_tests} from "./TestsDefault.ts";
+import {empty_tests} from "../defaults/TestsDefault.ts";
 import Header from "./Header.tsx";
 
 const TaskForm = () => {

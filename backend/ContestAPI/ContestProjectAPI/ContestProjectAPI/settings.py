@@ -164,6 +164,8 @@ C_COMPILER_LOCAL_PATH = os.path.join(COMPILERS_ROOT, os.getenv('C_COMPILER_PATH'
 C_PLUS_PLUS_COMPILER_LOCAL_PATH = os.path.join(COMPILERS_ROOT, os.getenv('C_PLUS_PLUS_COMPILER_PATH'))
 C_BIN_PATH = os.path.join(COMPILERS_ROOT, os.getenv('C_BIN_PATH'))
 
+TASKS_LIMIT = 8
+RATINGS_LIMIT = 8
 
 CACHES = {
     "default": {

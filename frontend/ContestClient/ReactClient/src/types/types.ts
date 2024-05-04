@@ -9,6 +9,7 @@ export type Profile = {
     user: User,
     points: number,
     solved_tasks: number,
+    created_at: string,
 }
 
 export type Task = {

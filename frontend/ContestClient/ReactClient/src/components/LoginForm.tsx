@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {axiosInstance} from "./AxiosInstance.ts";
 import {useCookies} from "react-cookie";
 import {Link, useNavigate} from "react-router-dom";
-import {setToken} from "./Token.ts";
+import {setToken} from "../defaults/Token.ts";
 import Header from "./Header.tsx";
 
 
