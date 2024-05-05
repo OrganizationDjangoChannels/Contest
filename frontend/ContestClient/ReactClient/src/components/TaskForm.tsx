@@ -5,6 +5,8 @@ import {useCookies} from "react-cookie";
 import TestCreate from "./TestCreate.tsx";
 import {empty_tests} from "../defaults/TestsDefault.ts";
 import Header from "./Header.tsx";
+import LoadingStatus from "./LoadingStatus.tsx";
+import SuccessfulStatus from "./SuccessfulStatus.tsx";
 
 const TaskForm = () => {
     const [cookie] = useCookies(['token']);
@@ -25,6 +27,9 @@ const TaskForm = () => {
 
     const [tests, setTests] = useState<Array<Test>>(empty_tests);
 
+    const [loading, setLoading] = useState<boolean>(false);
+    const [successfulStatus, setSuccessfulStatus] =
+        useState<boolean>(false);
 
 
     const handleOnChangeLangs = (e: ChangeEvent<HTMLInputElement>) => {
@@ -70,23 +75,33 @@ const TaskForm = () => {
     const handleOnSubmitTaskForm = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         axiosInstance.defaults.headers.post['Authorization'] = `Token ${cookie.token}`;
-        const response_task  = await axiosInstance.post(
-            'api/v1/task/',
-            {
-                ...taskFormData,
-                langs: `${langs.C ? 'C' : ''}${langs["C++"] ? '|C++' : ''}${langs.Java ? '|Java' : ''}${langs.Python ? '|Python' : ''}`,
+        setLoading(true);
+        try{
+            const response_task  = await axiosInstance.post(
+                'api/v1/task/',
+                {
+                    ...taskFormData,
+                    langs: `${langs.C ? 'C' : ''}${langs["C++"] ? '|C++' : ''}${langs.Java ? '|Java' : ''}${langs.Python ? '|Python' : ''}`,
+                }
+            );
+            const task_id = response_task.data.id;
+            console.log(tests);
+            const response_tests = await axiosInstance.post(
+                'api/v1/test/',
+                {
+                    tests,
+                    task_id: task_id,
+                }
+            );
+            if (response_task.status == 201 && response_tests.status == 201){
+                setLoading(false);
+                setSuccessfulStatus(true);
             }
-        );
-        const task_id = response_task.data.id;
-        console.log(tests);
-        const response_test  = await axiosInstance.post(
-            'api/v1/test/',
-            {
-                tests,
-                task_id: task_id,
-            }
-        );
-        console.log(response_test.data);
+        } catch (error) {
+            console.log(error);
+        }
+
+        setLoading(false);
     }
 
     return (
@@ -188,6 +203,8 @@ const TaskForm = () => {
 
                 <button type="submit" className={"submit-button"}>Create</button>
             </form>
+            {loading && <LoadingStatus/>}
+            {successfulStatus && <SuccessfulStatus message={'Your task was created'}/>}
         </div>
     );
 };
