@@ -194,13 +194,23 @@ class TaskAPIView(APIView):
         return response
 
     def post(self, request: Request) -> Response:
+        redis_connection = True
+
+        try:
+            cache.get(f'{settings.TASKS_CACHE_NAME}_on_page_{0}')
+        except redis.exceptions.ConnectionError as RedisConnectionError:
+            redis_connection = False
+            print(f'{RedisConnectionError = }')
+
         profile = ProfileModel.objects.get(user=request.user)
         serializer = TaskSerializer(data=request.data, context={'owner': profile})
 
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-            cache.delete(settings.TASKS_CACHE_NAME)
-            cache.delete(f'tasks_by_user_{request.user.id}')
+            if redis_connection:
+                cache.delete(f'{settings.TASKS_CACHE_NAME}_on_page_{0}')
+                print(f'cache: deleted key = {settings.TASKS_CACHE_NAME}_on_page_{0}')
+
             return Response(serializer.data, status=HTTP_201_CREATED)
 
 
