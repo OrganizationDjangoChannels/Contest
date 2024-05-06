@@ -1,13 +1,13 @@
 import {ChangeEvent, useEffect, useState} from "react";
-import {axiosInstance} from "./AxiosInstance.ts";
+import {axiosInstance} from "../../requests/AxiosInstance.ts";
 import {useCookies} from "react-cookie";
-import {TaskShow as TaskShowType} from "../types/types.ts";
-import {level_to_string} from "../defaults/TestsDefault.ts";
-import Header from "./Header.tsx";
+import {TaskShow as TaskShowType} from "../../types/types.ts";
+import {level_to_string} from "../../defaults/TestsDefault.ts";
+import Header from "../Header.tsx";
 import {Link} from "react-router-dom";
 import TaskShow from "./TaskShow.tsx";
-import Pagination from "./Pagination.tsx";
-import LoadingStatus from "./LoadingStatus.tsx";
+import Pagination from "../Pagination.tsx";
+import LoadingStatus from "../statuses/LoadingStatus.tsx";
 
 type TasksPropTypes = {
     by_myself: number,
@@ -18,6 +18,7 @@ const Tasks = (props: TasksPropTypes) => {
 
     const [cookie] = useCookies(['token']);
     const [tasks, setTasks] = useState<Array<TaskShowType>>();
+    const [filteredTasks, setFilteredTasks] = useState<Array<TaskShowType>>();
     const [showLevels, setShowLevels] =
         useState({
         1: true,
@@ -28,8 +29,6 @@ const Tasks = (props: TasksPropTypes) => {
     const [loading, setLoading] = useState<boolean>(false);
     let filtered_levels = {'1': true, '2': true, '3': true};
 
-
-
     const handleOnChangeLevel = (e: ChangeEvent<HTMLInputElement>) => {
         setShowLevels({
             ...showLevels,
@@ -37,24 +36,20 @@ const Tasks = (props: TasksPropTypes) => {
         })
         // @ts-ignore
         filtered_levels[e.target.name] = e.target.checked;
-        let allTasks = tasks;
-        if (allTasks){
-            let filtered_tasks
-                = [...allTasks.filter((task) => {
-                    if (task.level === 1){
-                        return filtered_levels["1"]
-                    }
-                if (task.level === 2){
-                    return filtered_levels["2"]
-                }
-                if (task.level === 3){
-                    return filtered_levels["3"]
-                }
-                })];
-            setTasks(filtered_tasks);
-        }
 
-        console.log(tasks);
+        if (tasks){
+            setFilteredTasks([...tasks.filter((task) => {
+                if (task.level === 1 && filtered_levels["1"]){
+                    return task
+                }
+                if (task.level === 2 && filtered_levels["2"]){
+                    return task
+                }
+                if (task.level === 3 && filtered_levels["3"]){
+                    return task
+                }
+            })]);
+        }
 
     }
 
@@ -65,7 +60,9 @@ const Tasks = (props: TasksPropTypes) => {
             const response = await axiosInstance.get('api/v1/task/',
                 {params: {...props, page: page},})
             setTasks(response.data);
+            setFilteredTasks(response.data);
             setLoading(false);
+            return response;
         } catch (error) {
             setLoading(false);
             console.log(error);
@@ -115,7 +112,7 @@ const Tasks = (props: TasksPropTypes) => {
                         </label>
             </span>
 
-            {tasks && tasks.map((task: TaskShowType) => (
+            {filteredTasks && filteredTasks.map((task: TaskShowType) => (
                 <TaskShow task={task} show_description={false} key={task.id}/>
             ))}
 

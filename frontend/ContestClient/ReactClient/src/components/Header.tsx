@@ -1,5 +1,5 @@
 import {useEffect} from "react";
-import {axiosInstance} from "./AxiosInstance.ts";
+import {axiosInstance} from "../requests/AxiosInstance.ts";
 import {useCookies} from "react-cookie";
 import {Link, useLocation, useNavigate} from "react-router-dom";
 
@@ -38,10 +38,14 @@ const Header = () => {
                 <Link to={`/`} className={'custom_link'}>{'Home'}</Link>
             </div>
             <div className={'header_container_item'}>
-                <Link to={`/tasks`} className={'custom_link'}>{'Tasks'}</Link>
+                <Link to={`/tasks`}
+                      reloadDocument={true}
+                      className={'custom_link'}>{'Tasks'}</Link>
             </div>
             <div className={'header_container_item'}>
-                <Link to={`/ratings`} className={'custom_link'}>{'Ratings'}</Link>
+                <Link to={`/ratings`}
+                      reloadDocument={true}
+                      className={'custom_link'}>{'Ratings'}</Link>
             </div>
             {cookie.profile ?
                 (<div className={'header_container_item'}>

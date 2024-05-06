@@ -1,31 +1,34 @@
 import {ChangeEvent, FormEvent, useState} from "react";
-import {Langs, Task, Test} from "../types/types.ts";
-import {axiosInstance} from "./AxiosInstance.ts";
+import {Langs, Task, Test} from "../../types/types.ts";
 import {useCookies} from "react-cookie";
-import TestCreate from "./TestCreate.tsx";
-import {empty_tests} from "../defaults/TestsDefault.ts";
-import Header from "./Header.tsx";
-import LoadingStatus from "./LoadingStatus.tsx";
-import SuccessfulStatus from "./SuccessfulStatus.tsx";
+import TestCreate from "../test/TestCreate.tsx";
+import {empty_tests, string2langs} from "../../defaults/TestsDefault.ts";
+import Header from "../Header.tsx";
+import LoadingStatus from "../statuses/LoadingStatus.tsx";
+import SuccessfulStatus from "../statuses/SuccessfulStatus.tsx";
+import {createTask, updateTask} from "../../requests/tasks.ts";
 
-const TaskForm = () => {
+type TaskFormPropTypes = {
+    task2edit?: Task,
+    tests2show?: Test[],
+}
+
+const TaskForm = ({task2edit, tests2show}: TaskFormPropTypes) => {
     const [cookie] = useCookies(['token']);
-    const [taskFormData, setTaskFormData] = useState<Task>({
-        id: 1,
-        title: '',
-        description: '',
-        level: 1,
-        langs: 'C|C++|Python|Java',
-        owner: null,
-    });
-    const [langs, setLangs] = useState<Langs>({
-        C: true,
-        'C++': true,
-        Java: true,
-        Python: true,
-    });
+    const [taskFormData, setTaskFormData] = useState<Task>(
+        task2edit ?
+            task2edit :
+            {id: 1, title: '', description: '', level: 1, langs: 'C|C++|Python|Java', owner: null,}
+    );
+    const [langs, setLangs] = useState<Langs>(
+        task2edit ?
+            string2langs(task2edit.langs) :
+            {C: true, 'C++': true, Java: true, Python: true,}
+    );
 
-    const [tests, setTests] = useState<Array<Test>>(empty_tests);
+    const [tests, setTests] = useState<Array<Test>>(
+        tests2show ? tests2show : empty_tests
+    );
 
     const [loading, setLoading] = useState<boolean>(false);
     const [successfulStatus, setSuccessfulStatus] =
@@ -74,40 +77,20 @@ const TaskForm = () => {
 
     const handleOnSubmitTaskForm = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        axiosInstance.defaults.headers.post['Authorization'] = `Token ${cookie.token}`;
         setLoading(true);
-        try{
-            const response_task  = await axiosInstance.post(
-                'api/v1/task/',
-                {
-                    ...taskFormData,
-                    langs: `${langs.C ? 'C' : ''}${langs["C++"] ? '|C++' : ''}${langs.Java ? '|Java' : ''}${langs.Python ? '|Python' : ''}`,
-                }
-            );
-            const task_id = response_task.data.id;
-            console.log(tests);
-            const response_tests = await axiosInstance.post(
-                'api/v1/test/',
-                {
-                    tests,
-                    task_id: task_id,
-                }
-            );
-            if (response_task.status == 201 && response_tests.status == 201){
-                setLoading(false);
-                setSuccessfulStatus(true);
-            }
-        } catch (error) {
-            console.log(error);
+        if (task2edit){
+            await updateTask(task2edit.id, String(cookie.token), taskFormData, setLoading, setSuccessfulStatus)
+        } else {
+            await createTask(String(cookie.token), taskFormData, tests, setLoading, setSuccessfulStatus)
         }
 
-        setLoading(false);
+
     }
 
     return (
         <div className={'main_container'}>
             <Header/>
-            <h2>Create your task</h2>
+            <h2>{task2edit ? 'Update' : 'Create'} your task</h2>
             <form onSubmit={handleOnSubmitTaskForm}>
                 <div className={"flex_container_vertical"}>
                     <div className={'title_label_container'}>
@@ -116,29 +99,49 @@ const TaskForm = () => {
                         </label>
                     </div>
                     <div>
-                        <input
-                            className={'title_input_field'}
-                            type="text"
-                            name='title'
-                            placeholder={'title'}
-                            onChange={handleOnChangeTaskFormData}
-                        />
+                        {task2edit ?
+                            <input
+                                className={'title_input_field'}
+                                type="text"
+                                name='title'
+                                placeholder={'title'}
+                                value={taskFormData.title}
+                                onChange={handleOnChangeTaskFormData}
+                            />
+                            : <input
+                                className={'title_input_field'}
+                                type="text"
+                                name='title'
+                                placeholder={'title'}
+                                onChange={handleOnChangeTaskFormData}
+                            />
+                        }
+
                     </div>
                     <div className={'description_label_container'}>
+
                         <label htmlFor={'description_area'} className={"input-label"} >
                             Description
                         </label>
                     </div>
-                    <textarea rows={10} cols={54} id={'description_area'} name={'description'}
-                              placeholder={'description'} onChange={handleOnChangeTaskFormData}>
+                    {task2edit ?
+                        <textarea rows={10} cols={54} id={'description_area'} name={'description'}
+                                  value={taskFormData.description}
+                                  placeholder={'description'} onChange={handleOnChangeTaskFormData}>
 
-                    </textarea>
+                        </textarea>
+                        : <textarea rows={10} cols={54} id={'description_area'} name={'description'}
+                                    placeholder={'description'} onChange={handleOnChangeTaskFormData}>
+
+                        </textarea> }
+
                 </div>
                 <div>
                     <label htmlFor={'level_select'} className={"input-label"}>
                         Choose a difficulty level
                     </label>
-                    <select name="level" id={'level_select'} onChange={handleOnChangeTaskFormData}>
+                    <select name="level" id={'level_select'} defaultValue={taskFormData.level}
+                            onChange={handleOnChangeTaskFormData}>
                         <option value={1}>easy</option>
                         <option value={2}>medium</option>
                         <option value={3}>hard</option>
@@ -192,8 +195,14 @@ const TaskForm = () => {
                 <div className={'flex_container_horizontal'}>
                     <div className={'tests_container'}>
                         {
-                            [...empty_tests].map((elem, i) => (
-                                <TestCreate test_number={elem.test_number} setTests={setTests} key={i}/>
+                            tests2show ?
+                                [...tests2show].map((elem, i) => (
+                                    <TestCreate test_number={elem.test_number} test={elem}
+                                                setTests={setTests} readonly={true} key={i}/>
+                                ))
+                            : [...empty_tests].map((elem, i) => (
+                                <TestCreate test_number={elem.test_number}
+                                            setTests={setTests} key={i}/>
                             ))
                         }
                     </div>
@@ -201,10 +210,12 @@ const TaskForm = () => {
                 </div>
 
 
-                <button type="submit" className={"submit-button"}>Create</button>
+                <button type="submit" className={"submit-button"}>{task2edit ? 'Update' : 'Create'}</button>
             </form>
             {loading && <LoadingStatus/>}
-            {successfulStatus && <SuccessfulStatus message={'Your task was created'}/>}
+            {successfulStatus && <SuccessfulStatus message={
+                task2edit ? 'Your task was updated' : 'Your task was created'
+            }/>}
         </div>
     );
 };

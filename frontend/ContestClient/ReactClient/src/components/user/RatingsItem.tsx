@@ -1,7 +1,7 @@
-import {Profile} from "../types/types.ts";
+import {Profile} from "../../types/types.ts";
 import {Link} from "react-router-dom";
 import {SetStateAction, useEffect, useState} from "react";
-import {RATINGS_LIMIT} from "../defaults/TestsDefault.ts";
+import {RATINGS_LIMIT} from "../../defaults/TestsDefault.ts";
 
 
 type RatingsItemPropTypes = {

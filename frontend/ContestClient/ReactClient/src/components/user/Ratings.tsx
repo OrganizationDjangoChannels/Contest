@@ -1,11 +1,11 @@
 import {useCookies} from "react-cookie";
 import {useEffect, useState} from "react";
-import {axiosInstance} from "./AxiosInstance.ts";
-import {Profile} from "../types/types.ts";
+import {axiosInstance} from "../../requests/AxiosInstance.ts";
+import {Profile} from "../../types/types.ts";
 import RatingsItem from "./RatingsItem.tsx";
-import Header from "./Header.tsx";
-import Pagination from "./Pagination.tsx";
-import LoadingStatus from "./LoadingStatus.tsx";
+import Header from "../Header.tsx";
+import Pagination from "../Pagination.tsx";
+import LoadingStatus from "../statuses/LoadingStatus.tsx";
 
 const Ratings = () => {
     const [cookie] = useCookies(['token']);

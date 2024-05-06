@@ -1,4 +1,4 @@
-import {axiosInstance, axiosFileUploadInstance} from "./AxiosInstance.ts";
+import {axiosInstance, axiosFileUploadInstance} from "../../requests/AxiosInstance.ts";
 import {FormEvent, useRef, useState} from "react";
 
 const TestComponent = () => {

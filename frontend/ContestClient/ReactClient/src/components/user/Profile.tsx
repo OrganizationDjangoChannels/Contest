@@ -1,14 +1,14 @@
-import {Profile, SolutionShowType} from "../types/types.ts";
-import {TaskShow as TaskShowType} from "../types/types.ts";
+import {Profile, SolutionShowType} from "../../types/types.ts";
+import {TaskShow as TaskShowType} from "../../types/types.ts";
 import {useNavigate, useParams} from "react-router-dom";
 import {useEffect, useState} from "react";
-import {axiosInstance} from "./AxiosInstance.ts";
+import {axiosInstance} from "../../requests/AxiosInstance.ts";
 import {useCookies} from "react-cookie";
-import SolutionsTable from "./SolutionsTable.tsx";
-import TaskShowShort from "./TaskShowShort.tsx";
+import SolutionsTable from "../solution/SolutionsTable.tsx";
+import TaskShowShort from "../task/TaskShowShort.tsx";
 import {logout} from "./logout.ts";
-import Header from "./Header.tsx";
-import LoadingStatus from "./LoadingStatus.tsx";
+import Header from "../Header.tsx";
+import LoadingStatus from "../statuses/LoadingStatus.tsx";
 
 
 const ProfileShow = () => {

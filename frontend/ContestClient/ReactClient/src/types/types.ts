@@ -39,6 +39,7 @@ export type Langs = {
 }
 
 export type Test = {
+    id?: number,
     input: string | null,
     output: string | null,
     test_number: number,

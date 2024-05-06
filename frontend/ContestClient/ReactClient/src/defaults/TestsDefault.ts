@@ -60,5 +60,15 @@ export const level_to_string = (level: number): string | null => {
     return null;
 }
 
+export const string2langs = (s: string): Langs => {
+    let arr = s.split('|');
+    return {
+        C: arr.includes('C'),
+        'C++': arr.includes('C++'),
+        Java: arr.includes('Java'),
+        Python: arr.includes('Python'),
+    };
+}
+
 export const RATINGS_LIMIT = 8;  // should be the same as on server
 

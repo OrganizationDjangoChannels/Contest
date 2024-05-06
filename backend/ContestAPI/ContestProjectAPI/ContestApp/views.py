@@ -3,10 +3,10 @@ import os
 
 import redis.exceptions
 from django.conf import settings
+from rest_framework import status
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 from rest_framework.views import APIView
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -28,9 +28,9 @@ class RegisterAPIView(APIView):
         if user_serializer.is_valid():
             user = user_serializer.save()
             token, created = Token.objects.get_or_create(user=user)
-            return Response({'token': token.key}, status=HTTP_201_CREATED)
+            return Response({'token': token.key}, status=status.HTTP_201_CREATED)
 
-        return Response(status=HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 class LoginAPIView(ObtainAuthToken):
@@ -43,7 +43,7 @@ class LoginAPIView(ObtainAuthToken):
         token = Token.objects.get(user=user)
         return Response({
             'token': token.key,
-        }, status=HTTP_200_OK)
+        }, status=status.HTTP_200_OK)
 
 
 class ProfileAPIView(APIView):
@@ -105,7 +105,7 @@ class ProfileAPIView(APIView):
                 response = Response(response_data)
 
             except ProfileModel.DoesNotExist:
-                response = Response({'message': 'The item does not exist'}, status=HTTP_404_NOT_FOUND)
+                response = Response({'message': 'The item does not exist'}, status=status.HTTP_404_NOT_FOUND)
 
         return response
 
@@ -121,7 +121,7 @@ class TestAuthAPIView(APIView):
             'username': profile.user.username,
             'profile': ProfileSerializer(profile).data,
         },
-            status=HTTP_200_OK)
+            status=status.HTTP_200_OK)
 
 
 class TaskAPIView(APIView):
@@ -189,7 +189,7 @@ class TaskAPIView(APIView):
                         cache.set(f'task_{task_id}', task)
                 response = Response(TaskSerializer(task).data)
             except TaskModel.DoesNotExist:
-                response = Response({'message': 'The item does not exist'}, status=HTTP_404_NOT_FOUND)
+                response = Response({'message': 'The item does not exist'}, status=status.HTTP_404_NOT_FOUND)
 
         return response
 
@@ -211,7 +211,24 @@ class TaskAPIView(APIView):
                 cache.delete(f'{settings.TASKS_CACHE_NAME}_on_page_{0}')
                 print(f'cache: deleted key = {settings.TASKS_CACHE_NAME}_on_page_{0}')
 
-            return Response(serializer.data, status=HTTP_201_CREATED)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def put(self, request: Request, task_id) -> Response:
+        if task_id is None:
+            raise APIException(detail='Parameter "task_id" was not provided', code=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            task = TaskModel.objects.get(id=task_id)
+            profile = ProfileModel.objects.get(user=request.user)
+            if task.owner != profile:
+                raise APIException(detail='You do not have rights to edit this', code=status.HTTP_403_FORBIDDEN)
+        except TaskModel.DoesNotExist:
+            raise APIException(detail='Task does not exist', code=status.HTTP_400_BAD_REQUEST)
+
+        serializer = TaskSerializer(data=request.data, instance=task)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class TestAPIView(APIView):
@@ -225,7 +242,7 @@ class TestAPIView(APIView):
                     serializer.save()
                     tests_created_number += 1
 
-        return Response({'tests_created': tests_created_number}, status=HTTP_201_CREATED)
+        return Response({'tests_created': tests_created_number}, status=status.HTTP_201_CREATED)
 
     def get(self, request: Request) -> Response:
         task_id = request.GET.get('task_id', None)
@@ -299,7 +316,7 @@ class SolutionAPIView(APIView):
                     print(error)
                     print(f'returncode: {run_command.returncode}')
                     print('build error')
-                    raise APIException(code=HTTP_400_BAD_REQUEST, detail=error, )
+                    raise APIException(code=status.HTTP_400_BAD_REQUEST, detail=error, )
 
                 for test in tests:
                     passed_tests += run_test(test=test, compile_command=compile_command, environment=environment)
@@ -332,7 +349,7 @@ class SolutionAPIView(APIView):
 
             return Response(
                 {**serializer.data, 'passed_tests': passed_tests, 'points': solution.points},
-                status=HTTP_201_CREATED
+                status=status.HTTP_201_CREATED
             )
 
 
