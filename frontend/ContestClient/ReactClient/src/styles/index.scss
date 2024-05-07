@@ -262,7 +262,7 @@ span.langs_selection{
     font-size: 20px;
     margin: 24px;
     padding: 16px 24px 16px 24px;
-    width: 512px;
+    min-width: 512px;
     min-height: 64px;
 }
 
@@ -289,6 +289,7 @@ span.langs_selection{
     margin: 12px 4px 4px 4px;
     padding: 0 8px 0 8px;
     text-indent: 8px;
+    white-space: pre-line;
 }
 
 .solution_form_container{
@@ -455,6 +456,11 @@ input[type='number'].page_input{
 .successful_status{
     margin-top: 4px;
     color: #44AA44;
+    font-size: 20px;
+}
+
+.edit_task_link_container{
+    margin-top: 12px;
     font-size: 20px;
 }
 

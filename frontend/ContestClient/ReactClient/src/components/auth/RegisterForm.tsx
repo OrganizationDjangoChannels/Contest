@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import {axiosInstance} from "./AxiosInstance.ts";
+import {axiosInstance} from "../../requests/AxiosInstance.ts";
 import {useCookies} from 'react-cookie';
-import {setToken} from "../defaults/Token.ts";
+import {setToken} from "../../defaults/Token.ts";
 import {Link, useNavigate} from "react-router-dom";
-import Header from "./Header.tsx";
+import Header from "../Header.tsx";
 
 
 

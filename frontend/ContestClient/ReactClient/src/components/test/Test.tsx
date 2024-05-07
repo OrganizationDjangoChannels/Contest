@@ -1,4 +1,4 @@
-import {TestShow} from "../types/types.ts";
+import {TestShow} from "../../types/types.ts";
 
 type TestPropTypes = {
     test: TestShow
