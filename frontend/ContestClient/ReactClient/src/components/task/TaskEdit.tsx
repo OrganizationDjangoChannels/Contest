@@ -49,7 +49,7 @@ const TaskEdit = ({task2edit}: TaskEditProps) => {
             setLoading(true);
             getTests({task_id, token, setTests, setLoading})
                 .then(response => {
-                    setLoading(false);
+                    setTests(response.data);
                     console.log(response);
                 })
         } else {
@@ -70,11 +70,11 @@ const TaskEdit = ({task2edit}: TaskEditProps) => {
                 </>
 
                 :
-                    task &&
+                    task && tests &&
                     <TaskForm task2edit={
                         {id: task.id, title: task.title, description: task.description,
                             level: task.level, langs: task.langs, owner: task.owner,}
-                    } tests2show={tests}/>
+                    } tests2edit={tests}/>
             }
         </div>
     );

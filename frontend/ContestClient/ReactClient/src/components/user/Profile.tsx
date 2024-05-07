@@ -1,6 +1,6 @@
 import {Profile, SolutionShowType} from "../../types/types.ts";
 import {TaskShow as TaskShowType} from "../../types/types.ts";
-import {useNavigate, useParams} from "react-router-dom";
+import {useParams} from "react-router-dom";
 import {useEffect, useState} from "react";
 import {axiosInstance} from "../../requests/AxiosInstance.ts";
 import {useCookies} from "react-cookie";
@@ -13,7 +13,6 @@ import LoadingStatus from "../statuses/LoadingStatus.tsx";
 
 const ProfileShow = () => {
     const [cookie, ,removeCookie] = useCookies(['token', 'profile']);
-    const navigate = useNavigate();
     const {id} = useParams();
     const [profile, setProfile] = useState<Profile>();
     const [mySolutions, setMySolutions] =
@@ -63,19 +62,23 @@ const ProfileShow = () => {
                 {
                     mySolutions ? <SolutionsTable solutions={mySolutions} showTaskId={true}/> : ''
                 }
-                <h2>Solved Tasks</h2>
+
                 {
                     solvedTasks ?
-                        solvedTasks.map(task => (
+                        <>
+                            <h2>Solved Tasks</h2>
+                            {solvedTasks.map(task => (
                             <TaskShowShort task={task} key={task.id}/>
-                        ))
+                            ))}
+                        </>
+
                         : ''
                 }
 
                 <div>
                     <button className={'logout-button'} onClick={() => {
                         logout(removeCookie);
-                        setTimeout(() => {navigate('/')}, 2000);
+
                     }}>
                         logout
                     </button>

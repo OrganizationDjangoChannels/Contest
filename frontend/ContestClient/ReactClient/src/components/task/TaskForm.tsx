@@ -2,7 +2,7 @@ import {ChangeEvent, FormEvent, useState} from "react";
 import {Langs, Task, Test} from "../../types/types.ts";
 import {useCookies} from "react-cookie";
 import TestCreate from "../test/TestCreate.tsx";
-import {empty_tests, string2langs} from "../../defaults/TestsDefault.ts";
+import {build_empty_tests, empty_tests, string2langs} from "../../defaults/TestsDefault.ts";
 import Header from "../Header.tsx";
 import LoadingStatus from "../statuses/LoadingStatus.tsx";
 import SuccessfulStatus from "../statuses/SuccessfulStatus.tsx";
@@ -10,10 +10,10 @@ import {createTask, updateTask} from "../../requests/tasks.ts";
 
 type TaskFormPropTypes = {
     task2edit?: Task,
-    tests2show?: Test[],
+    tests2edit?: Test[],
 }
 
-const TaskForm = ({task2edit, tests2show}: TaskFormPropTypes) => {
+const TaskForm = ({task2edit, tests2edit}: TaskFormPropTypes) => {
     const [cookie] = useCookies(['token']);
     const [taskFormData, setTaskFormData] = useState<Task>(
         task2edit ?
@@ -27,7 +27,7 @@ const TaskForm = ({task2edit, tests2show}: TaskFormPropTypes) => {
     );
 
     const [tests, setTests] = useState<Array<Test>>(
-        tests2show ? tests2show : empty_tests
+        tests2edit ? tests2edit : empty_tests
     );
 
     const [loading, setLoading] = useState<boolean>(false);
@@ -79,7 +79,9 @@ const TaskForm = ({task2edit, tests2show}: TaskFormPropTypes) => {
         e.preventDefault();
         setLoading(true);
         if (task2edit){
-            await updateTask(task2edit.id, String(cookie.token), taskFormData, setLoading, setSuccessfulStatus)
+            await updateTask(task2edit.id, String(cookie.token), taskFormData,
+                tests, setLoading, setSuccessfulStatus)
+                .then(response => console.log(response))
         } else {
             await createTask(String(cookie.token), taskFormData, tests, setLoading, setSuccessfulStatus)
         }
@@ -195,10 +197,10 @@ const TaskForm = ({task2edit, tests2show}: TaskFormPropTypes) => {
                 <div className={'flex_container_horizontal'}>
                     <div className={'tests_container'}>
                         {
-                            tests2show ?
-                                [...tests2show].map((elem, i) => (
-                                    <TestCreate test_number={elem.test_number} test={elem}
-                                                setTests={setTests} readonly={true} key={i}/>
+                            tests2edit ?
+                                [...build_empty_tests(tests2edit)].map((elem, i) => (
+                                    <TestCreate test_number={elem.test_number} test2update={elem}
+                                                setTests={setTests} key={i}/>
                                 ))
                             : [...empty_tests].map((elem, i) => (
                                 <TestCreate test_number={elem.test_number}

@@ -35,7 +35,9 @@ const Header = () => {
     return (
         <div className={'header_container'}>
             <div className={'header_container_item'}>
-                <Link to={`/`} className={'custom_link'}>{'Home'}</Link>
+                <Link to={`/`}
+                      reloadDocument={true}
+                      className={'custom_link'}>{'Home'}</Link>
             </div>
             <div className={'header_container_item'}>
                 <Link to={`/tasks`}

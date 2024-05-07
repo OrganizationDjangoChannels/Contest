@@ -17,6 +17,7 @@ from django.core.cache import cache
 
 from .models import SolutionModel, ProfileModel, TaskModel, TestModel
 from .serializers import SolutionSerializer, UserSerializer, TaskSerializer, TestSerializer, ProfileSerializer
+from .services.db_queries import create_test
 from .services.files import get_cmd_commands_for_c_file, get_cmd_command, run_test, get_solution_status
 
 C_BIN_PATH = settings.C_BIN_PATH
@@ -254,6 +255,45 @@ class TestAPIView(APIView):
             response = Response(TestSerializer(tests, many=True).data)
 
         return response
+
+    def put(self, request: Request, task_id: int) -> Response:  # update all tests related to the task
+
+        try:
+            task = TaskModel.objects.get(id=task_id)
+            profile = ProfileModel.objects.get(user=request.user)
+            if task.owner != profile:
+                raise APIException(detail='You do not have rights to edit this', code=status.HTTP_403_FORBIDDEN)
+            tests = TestModel.objects.filter(task=task).order_by('id')
+
+        except TaskModel.DoesNotExist:
+            raise APIException(detail='Task does not exist', code=status.HTTP_400_BAD_REQUEST)
+
+        serializer = TestSerializer(data=request.data, many=True)
+        serializer.is_valid(raise_exception=True)
+        serializer_index = 0
+        empty_tests: list[TestModel] = []
+        for test in tests:
+            input_data = serializer.data[test.test_number - 1]['input']
+            output_data = serializer.data[test.test_number - 1]['output']
+            if input_data is None and output_data is None:
+                empty_tests.append(test)
+            else:
+                test.input = input_data
+                test.output = output_data
+            serializer_index += 1
+
+        TestModel.objects.bulk_update(tests, ['input', 'output'])
+
+        for empty_test in empty_tests:
+            empty_test.delete()
+
+        try:
+            for i in range(serializer_index, 101):
+                create_test(serializer.data[i], task)
+        except IndexError:
+            pass
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class SolutionAPIView(APIView):

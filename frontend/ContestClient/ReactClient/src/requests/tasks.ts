@@ -1,6 +1,7 @@
 import {axiosInstance} from "./AxiosInstance.ts";
 import {Dispatch, SetStateAction} from "react";
-import {Task as TaskType} from "../types/types.ts";
+import {Task, Task as TaskType, Test} from "../types/types.ts";
+import {updateTests} from "./tests.ts";
 
 type getTaskArgTypes = {
     id: string,
@@ -63,7 +64,8 @@ export const createTask = async (token: string,
 
 export const updateTask = async (task_id: number,
                                  token: string,
-                                 taskFormData: object,
+                                 taskFormData: Task,
+                                 testsFormData: Test[],
                                  setLoading: Dispatch<SetStateAction<boolean>>,
                                  setSuccessfulStatus: Dispatch<SetStateAction<boolean>>,
                                  ) => {
@@ -78,8 +80,13 @@ export const updateTask = async (task_id: number,
         )
 
         if (response_task.status === 200){
-            setLoading(false);
-            setSuccessfulStatus(true);
+            const response_tests = await updateTests(task_id, token, testsFormData)
+            if (response_tests.status === 204){
+                setLoading(false);
+                setSuccessfulStatus(true);
+                return response_tests;
+            }
+
         }
         return response_task;
 

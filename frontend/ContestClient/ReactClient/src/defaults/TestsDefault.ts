@@ -10,6 +10,14 @@ export const empty_tests: Array<Test> = Array.from({length: tests_max_number}, (
     }
 });
 
+export const build_empty_tests = (tests: Test[]): Test[] => {
+    let arr = empty_tests.slice();
+    for (let test of tests){
+        arr[test.test_number - 1] = test;
+    }
+    return arr;
+}
+
 export const parse_langs = (str_langs: string | null): Langs | null => {
     if (str_langs === null){
         return null;

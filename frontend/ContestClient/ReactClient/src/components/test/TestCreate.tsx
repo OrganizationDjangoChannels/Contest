@@ -6,21 +6,30 @@ type TestCreateProps = {
     test_number: number,
     setTests: Dispatch<SetStateAction<Test[]>>,
     readonly?: boolean,
-    test?: Test,
+    test2update?: Test,
 }
-const TestCreate = ({test_number, setTests, readonly, test} : TestCreateProps) => {
+const TestCreate = ({test_number, setTests, readonly, test2update} : TestCreateProps) => {
 
     const handleTestOnChange = function (e : ChangeEvent<HTMLTextAreaElement>, stream: string){
         setTests((tests) => {
             let updated_tests = [...tests];
             let updated_test = {...updated_tests[test_number - 1]};   // index
             if (stream === 'input'){
-                updated_test.input = e.target.value;
+                if (e.target.value === ''){
+                    updated_test.input = null;
+                } else {
+                    updated_test.input = e.target.value;
+                }
             }
             if (stream === 'output'){
-                updated_test.output = e.target.value;
-            }
+                if (e.target.value === ''){
+                    updated_test.output = null;
+                } else {
+                    updated_test.output = e.target.value;
+                }
 
+            }
+            updated_test.test_number = test_number;
             updated_tests[test_number - 1] = updated_test;   // index
             return updated_tests;
         });
@@ -31,13 +40,15 @@ const TestCreate = ({test_number, setTests, readonly, test} : TestCreateProps) =
             <div className={'test_number'}>
                 {`${test_number}`}
             </div>
-            {test ?
+            {test2update ?
                 <>
-                    <textarea rows={4} cols={24} readOnly={readonly} value={test?.input ? test.input : ''}
+                    <textarea rows={4} cols={24} readOnly={readonly}
+                              defaultValue={test2update?.input ? test2update.input : ''}
                               placeholder={'input'} onChange={(e) =>
                         handleTestOnChange(e, 'input')}>
                     </textarea>
-                    <textarea rows={4} cols={24} readOnly={readonly} value={test?.output ? test.output : ''}
+                    <textarea rows={4} cols={24} readOnly={readonly}
+                              defaultValue={test2update?.output ? test2update.output : ''}
                               placeholder={'output'} onChange={(e) =>
                         handleTestOnChange(e, 'output')}>
                     </textarea>
