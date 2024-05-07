@@ -46,7 +46,7 @@ export const createTask = async (token: string,
         const response_tests = await axiosInstance.post(
             'api/v1/test/',
             {
-                ...testsFormData,
+                tests: testsFormData,
                 task_id: task_id,
             }
         );
