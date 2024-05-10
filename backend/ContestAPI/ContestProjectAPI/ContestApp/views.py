@@ -51,11 +51,11 @@ class ProfileAPIView(APIView):
     def get(self, request: Request, profile_id=None) -> Response:
 
         if request.user.is_authenticated and profile_id is None:  # get profile via token
-            profile = ProfileModel.objects.get(user=request.user)
+            profile = (ProfileModel.objects.filter(user=request.user).prefetch_related('user'))[0]
             response = Response(ProfileSerializer(profile).data)
 
         elif profile_id is None:  # get 10 profiles
-            profiles = ProfileModel.objects.all().order_by('id')[0: 10]
+            profiles = ProfileModel.objects.all().order_by('id').prefetch_related('user')[0: 10]
             response = Response(ProfileSerializer(profiles, many=True).data)
         else:  # get profile by id
             try:
@@ -80,15 +80,23 @@ class ProfileAPIView(APIView):
                     print(f'fetched from cache by many keys (profile, solutions, tasks)')
 
                 else:
-                    profile = ProfileModel.objects.get(id=profile_id)
-                    solutions = SolutionModel.objects \
-                        .filter(owner=profile, status='solved') \
-                        .distinct('task', 'created_at') \
-                        .order_by('-created_at')
+                    profile = (ProfileModel.objects.filter(id=profile_id).select_related('user'))[0]
+                    solutions = (SolutionModel.objects
+                                 .filter(owner=profile, status='solved')
+                                 .distinct('task', 'created_at')
+                                 .order_by('-created_at')
+                                 .select_related('owner')
+                                 .prefetch_related('owner__user', 'task', 'task__owner', 'task__owner__user')
+                                 )
                     tasks_ids_array = []
                     for solution in solutions:
                         tasks_ids_array.append(solution.task.id)
-                    tasks = TaskModel.objects.filter(id__in=tasks_ids_array).distinct()
+                    tasks = (TaskModel.objects.
+                             filter(id__in=tasks_ids_array)
+                             .distinct()
+                             .select_related('owner')
+                             .prefetch_related('owner__user')
+                             )
                     response_data = {
                         'profile': ProfileSerializer(profile).data,
                         'my_solutions': SolutionSerializer(solutions, many=True).data,
@@ -144,11 +152,13 @@ class TaskAPIView(APIView):
                     my_tasks = my_tasks_cache
                     print(f'fetched from cache by key = tasks_by_user_{request.user.id}_on_page_{page}')
                 else:
-                    profile = ProfileModel.objects.get(user=request.user)
+                    profile = (ProfileModel.objects.filter(user=request.user).prefetch_related('user'))[0]
                     my_tasks = (TaskModel.objects
                                 .filter(owner=profile)
                                 .order_by('-id')[page * settings.TASKS_LIMIT:
-                                                 (page + 1) * settings.TASKS_LIMIT])
+                                                 (page + 1) * settings.TASKS_LIMIT]
+                                .prefetch_related('owner', 'owner__user')
+                                )
                     if redis_connection:
                         cache.set(f'tasks_by_user_{request.user.id}_on_page_{page}', my_tasks)
                 response = Response(TaskSerializer(my_tasks, many=True).data)
@@ -166,7 +176,9 @@ class TaskAPIView(APIView):
                     print(f'fetched from cache by key = {settings.TASKS_CACHE_NAME}_on_page_{page}')
                 else:
                     tasks = (TaskModel.objects.all()
-                             .order_by('-id')[page * settings.TASKS_LIMIT:(page + 1) * settings.TASKS_LIMIT])
+                             .order_by('-id')[page * settings.TASKS_LIMIT:(page + 1) * settings.TASKS_LIMIT]
+                             .prefetch_related('owner', 'owner__user')
+                             )
                     if redis_connection:
                         cache.set(f'{settings.TASKS_CACHE_NAME}_on_page_{page}', tasks)
                 response = Response(TaskSerializer(tasks, many=True).data)
@@ -185,12 +197,17 @@ class TaskAPIView(APIView):
                     task = task_cache
                     print(f'fetched from cache by key = task_{task_id}')
                 else:
-                    task = TaskModel.objects.get(id=task_id)
+                    task_query = (TaskModel.objects.filter(id=task_id).prefetch_related('owner', 'owner__user'))
+                    if not task_query:
+                        raise APIException(detail='The item does not exist', code=404)
+                    task = task_query[0]
                     if redis_connection:
                         cache.set(f'task_{task_id}', task)
                 response = Response(TaskSerializer(task).data)
             except TaskModel.DoesNotExist:
                 response = Response({'message': 'The item does not exist'}, status=status.HTTP_404_NOT_FOUND)
+            except APIException as ex:
+                response = Response({'message': ex.detail}, status=status.HTTP_404_NOT_FOUND)
 
         return response
 
@@ -303,7 +320,8 @@ class SolutionAPIView(APIView):
         task_id = request.GET.get('task_id', None)
 
         if task_id is None:  # it should never be used
-            solutions = SolutionModel.objects.all().order_by('-id')[0: 100]
+            solutions = SolutionModel.objects.all().order_by('-id')[0: 100] \
+                .prefetch_related('task', 'task__owner', 'task__owner__user', 'owner', 'owner__user')
             response = Response(SolutionSerializer(solutions, many=True).data)
 
         else:
@@ -319,7 +337,9 @@ class SolutionAPIView(APIView):
                 solutions = solutions_cache
                 print(f'fetched from cache by key = solutions_by_task_{task_id}')
             else:
-                solutions = SolutionModel.objects.filter(task__id=task_id).order_by('-id')[0: 100]
+                solutions = SolutionModel.objects.filter(task__id=task_id).order_by('-id')[0: 100] \
+                    .prefetch_related('task', 'task__owner', 'task__owner__user', 'owner', 'owner__user')
+
                 if redis_connection:
                     cache.set(f'solutions_by_task_{task_id}', solutions)
             response = Response(SolutionSerializer(solutions, many=True).data)
@@ -409,7 +429,9 @@ class RatingsAPIView(APIView):
             print(f'fetched from cache by key = {settings.RATINGS_CACHE_NAME}')
         else:
             ratings = (ProfileModel.objects.all()
-                       .order_by('-points', '-id')[page * settings.RATINGS_LIMIT:(page + 1) * settings.RATINGS_LIMIT])
+                       .order_by('-points', '-id')[page * settings.RATINGS_LIMIT:(page + 1) * settings.RATINGS_LIMIT]
+                       .select_related('user')
+                       )
             if redis_connection:
                 cache.set(settings.RATINGS_CACHE_NAME, ratings)
         response = Response(ProfileSerializer(ratings, many=True).data)
