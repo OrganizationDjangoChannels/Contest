@@ -265,11 +265,17 @@ class TestAPIView(APIView):
     def get(self, request: Request) -> Response:
         task_id = request.GET.get('task_id', None)
         if task_id is None:
-            tests = TestModel.objects.all().order_by('id')[0: 100]
-            response = Response(TestSerializer(tests, many=True).data)
+            response = Response({'detail': 'task_id is not provided'}, status=status.HTTP_400_BAD_REQUEST)
         else:
-            tests = TestModel.objects.filter(task__id=task_id)
-            response = Response(TestSerializer(tests, many=True).data)
+            tests = (TestModel.objects
+                     .filter(task__id=task_id)
+                     .prefetch_related('task', 'task__owner', 'task__owner__user')
+                     )
+            if not tests:
+                response = Response({'detail': 'There are no tests with provided task_id'},
+                                    status=status.HTTP_404_NOT_FOUND)
+            else:
+                response = Response(TestSerializer(tests, many=True).data)
 
         return response
 
