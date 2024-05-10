@@ -29,11 +29,16 @@ class ProfileModel(BaseModel):
 
 
 class TaskModel(BaseModel):
-    title = models.CharField(max_length=255, null=True)
-    description = models.TextField(null=True)
-    level = models.IntegerField(default=0)
-    langs = models.CharField(max_length=255, null=True)
-    owner = models.ForeignKey(ProfileModel, on_delete=models.CASCADE, null=True)
+    TASK_LEVELS = (
+        (1, 1),
+        (2, 2),
+        (3, 3),
+    )
+    title = models.CharField(max_length=255, blank=True)
+    description = models.TextField(blank=True)
+    level = models.IntegerField(choices=TASK_LEVELS, default=1)
+    langs = models.CharField(max_length=255)
+    owner = models.ForeignKey(ProfileModel, on_delete=models.CASCADE)
     sent_solutions = models.IntegerField(default=0)
 
     class Meta:
@@ -51,15 +56,6 @@ class SolutionModel(BaseModel):
 
     class Meta:
         db_table = 'solution'
-
-
-class AttemptModel(BaseModel):
-    task = models.ForeignKey(TaskModel, on_delete=models.CASCADE, null=True)
-    profile = models.ForeignKey(ProfileModel, on_delete=models.CASCADE, null=True)
-    attempt_number = models.IntegerField(default=0)
-
-    class Meta:
-        db_table = 'attempt'
 
 
 class TestModel(BaseModel):
