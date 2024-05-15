@@ -51,6 +51,7 @@ const TaskEdit = ({task2edit}: TaskEditProps) => {
                 .then(response => {
                     setTests(response.data);
                     console.log(response);
+                    setLoading(false);
                 })
         } else {
             setLoading(false);
