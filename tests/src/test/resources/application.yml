@@ -1,0 +1,10 @@
+datasource:
+  contest:
+    url: jdbc:postgresql://localhost:5432/ContestDatabase
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: 228Gtnhjd228
+    configuration:
+      idle-timeout: 10000
+      minimum-idle: 1
+      maximum-pool-size: 6
