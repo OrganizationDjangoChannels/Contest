@@ -282,22 +282,31 @@ class TestAPIView(APIView):
     def put(self, request: Request, task_id: int) -> Response:  # update all tests related to the task
 
         try:
-            task = TaskModel.objects.get(id=task_id)
-            profile = ProfileModel.objects.get(user=request.user)
+            task = (TaskModel.objects
+                    .filter(id=task_id)
+                    .prefetch_related('owner')
+                    )[0]
+            profile = (ProfileModel.objects
+                       .filter(user=request.user)
+                       )[0]
+            if not task:
+                raise APIException(detail='Task does not exist', code=status.HTTP_400_BAD_REQUEST)
             if task.owner != profile:
                 raise APIException(detail='You do not have rights to edit this', code=status.HTTP_403_FORBIDDEN)
-            tests = TestModel.objects.filter(task=task).order_by('id')
+            tests = (TestModel.objects
+                     .filter(task=task).order_by('id')
+                     )
 
         except TaskModel.DoesNotExist:
             raise APIException(detail='Task does not exist', code=status.HTTP_400_BAD_REQUEST)
 
-        serializer = TestSerializer(data=request.data, many=True)
-        serializer.is_valid(raise_exception=True)
+        given_tests = request.data
+
         serializer_index = 0
         empty_tests: list[TestModel] = []
         for test in tests:
-            input_data = serializer.data[test.test_number - 1]['input']
-            output_data = serializer.data[test.test_number - 1]['output']
+            input_data = given_tests[test.test_number - 1]['input']
+            output_data = given_tests[test.test_number - 1]['output']
             if input_data is None and output_data is None:
                 empty_tests.append(test)
             else:
@@ -312,7 +321,7 @@ class TestAPIView(APIView):
 
         try:
             for i in range(serializer_index, 101):
-                create_test(serializer.data[i], task)
+                create_test(given_tests[i], task)
         except IndexError:
             pass
 
