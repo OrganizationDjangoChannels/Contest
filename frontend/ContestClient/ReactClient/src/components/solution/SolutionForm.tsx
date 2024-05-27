@@ -1,5 +1,5 @@
 import {ChangeEvent, Dispatch, FormEvent, SetStateAction, useState} from "react";
-import {SolutionCreate} from "../../types/types.ts";
+import {SolutionCreate, SolutionShowType} from "../../types/types.ts";
 import {axiosFileUploadInstance} from "../../requests/AxiosInstance.ts";
 import {useCookies} from "react-cookie";
 import {parse_langs} from "../../defaults/TestsDefault.ts";
@@ -7,12 +7,13 @@ import {parse_langs} from "../../defaults/TestsDefault.ts";
 type SolutionFormPropTypes = {
     solution: SetStateAction<SolutionCreate>,
     setSolution: Dispatch<SetStateAction<SolutionCreate>>,
+    setSolutions: Dispatch<SetStateAction<SolutionShowType[] | undefined>>,
     task_id: number | null,
     task_langs: string | null,
 
 }
 
-const SolutionForm = ({solution, setSolution, task_id, task_langs}: SolutionFormPropTypes) => {
+const SolutionForm = ({solution, setSolution, setSolutions, task_id, task_langs}: SolutionFormPropTypes) => {
 
     const [cookie] = useCookies(['token']);
     const langs = parse_langs(task_langs);
@@ -47,6 +48,19 @@ const SolutionForm = ({solution, setSolution, task_id, task_langs}: SolutionForm
                 task_id: task_id,
             }
         );
+        if (response.status === 201){
+            console.log(response.data);
+            setSolutions(prevState => {
+                if (prevState){
+                    return [
+                        response.data,
+                        ...prevState,
+                    ]
+                }
+                return [response.data]
+
+            })
+        }
         setSolutionStatus('');
         console.log(response);
     }

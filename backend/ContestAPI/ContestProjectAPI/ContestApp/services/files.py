@@ -51,13 +51,20 @@ def run_test(test, compile_command: str, environment=None) -> int:
                                    shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                    stdin=subprocess.PIPE, env=environment, )
     input_data = test.input.encode('utf-8')
-    output, error = run_command.communicate(input=input_data)
 
-    if run_command.returncode != 0:
-        print(error)
-        print(f'returncode: {run_command.returncode}')
-        print('compile error')
+    try:
+        output = subprocess.check_output(compile_command, stderr=subprocess.STDOUT, timeout=2, input=input_data)
+        print(f'{output = }')
+        # output, error = run_command.communicate(input=input_data)
+    except subprocess.TimeoutExpired as ex:
+        print(ex)
         return 0
+    except subprocess.CalledProcessError as ex:
+        print(ex)
+        return -1
+    except BaseException as ex:
+        print(ex)
+        return -1
 
     if output.rstrip() == test.output.encode('utf-8'):
         print(f'test #{test.test_number} passed')

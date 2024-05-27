@@ -51,7 +51,7 @@ class SolutionModel(BaseModel):
     task = models.ForeignKey(TaskModel, on_delete=models.CASCADE, null=True)
     owner = models.ForeignKey(ProfileModel, on_delete=models.CASCADE, null=True)
     points = models.FloatField(default=0)
-    status = models.CharField(max_length=6, choices=TEST_STATUSES, null=True)
+    status = models.CharField(max_length=16, choices=TEST_STATUSES, null=True)
     passed_tests = models.IntegerField(default=0)
 
     class Meta:
@@ -60,7 +60,7 @@ class SolutionModel(BaseModel):
 
 class TestModel(BaseModel):
     task = models.ForeignKey(TaskModel, on_delete=models.CASCADE, null=True)
-    status = models.CharField(max_length=6, choices=TEST_STATUSES, null=True)
+    status = models.CharField(max_length=16, choices=TEST_STATUSES, null=True)
     input = models.CharField(max_length=255, null=True)
     output = models.CharField(max_length=255, null=True)
     test_number = models.IntegerField(null=True)

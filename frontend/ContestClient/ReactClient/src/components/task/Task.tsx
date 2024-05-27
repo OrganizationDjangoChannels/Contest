@@ -67,6 +67,7 @@ const Task = () => {
                 <SolutionForm
                     solution={solution}
                     setSolution={setSolution}
+                    setSolutions={setSolutions}
                     task_id={task ? task.id : null}
                     task_langs={task ? task.langs : null}
                 />

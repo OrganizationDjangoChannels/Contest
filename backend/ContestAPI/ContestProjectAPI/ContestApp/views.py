@@ -399,7 +399,11 @@ class SolutionAPIView(APIView):
             else:
                 compile_command = get_cmd_command(str(file), str(lang))
                 for test in tests:
-                    passed_tests += run_test(test=test, compile_command=compile_command)
+                    test_score = run_test(test=test, compile_command=compile_command)
+                    if test_score == -1:
+                        raise APIException(code=status.HTTP_400_BAD_REQUEST, detail='compile error', )
+                    else:
+                        passed_tests += test_score
 
             task.sent_solutions += 1
             task.save()
@@ -408,11 +412,13 @@ class SolutionAPIView(APIView):
                 owner=profile, task=task).aggregate(Max('points'))['points__max']
 
             solution.passed_tests = passed_tests
-            solution.points = tests_count / passed_tests * 100 * task.level
+            solution.points = (passed_tests / tests_count) * 100 * task.level
             solution.status = get_solution_status(solution.points, task.level)
             solution.task = task
             solution.owner = profile
             solution.save()
+
+            sent_solution_serializer = SolutionSerializer(solution)
 
             if my_solution_max_points:
                 if solution.points > my_solution_max_points:
@@ -423,7 +429,7 @@ class SolutionAPIView(APIView):
                 profile.save()
 
             return Response(
-                {**serializer.data, 'passed_tests': passed_tests, 'points': solution.points},
+                {**sent_solution_serializer.data, },
                 status=status.HTTP_201_CREATED
             )
 
