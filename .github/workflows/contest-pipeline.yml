@@ -16,8 +16,7 @@ jobs:
     - name: Build backend with database
       env:
         DOCKER_COMPOSE_VERSION: 3.9
-      run: |  
-        sudo rm /usr/local/bin/docker-compose
+      run: |
         curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o docker-compose
         sudo chmod +x docker-compose
         sudo mv docker-compose /usr/local/bin
