@@ -412,7 +412,7 @@ class SolutionAPIView(APIView):
                 owner=profile, task=task).aggregate(Max('points'))['points__max']
 
             solution.passed_tests = passed_tests
-            solution.points = (passed_tests / tests_count) * 100 * task.level
+            solution.points = round((passed_tests / tests_count) * 100 * task.level, 2)
             solution.status = get_solution_status(solution.points, task.level)
             solution.task = task
             solution.owner = profile
