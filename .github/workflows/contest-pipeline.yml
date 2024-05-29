@@ -3,8 +3,6 @@ name: Django CI
 on:
   push:
     branches: [ "Contest" ]
-  pull_request:
-    branches: [ "main" ]
 
 jobs:
   backend-job:
@@ -14,13 +12,9 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
     - name: Build backend with database
-      env:
-        DOCKER_COMPOSE_VERSION: 3.9
-      run: |
-        curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o docker-compose
-        sudo chmod +x docker-compose
-        sudo mv docker-compose /usr/local/bin
-        docker-compose up --build
+    - uses: hoverkraft-tech/compose-action@v2.0.0
+      with:
+        compose-file: "./backend/ContestAPI/docker-compose.yml"
         
   java-job:
     runs-on: ubuntu-latest
