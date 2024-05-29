@@ -3,8 +3,9 @@ name: Django CI
 on:
   push:
     branches: [ "Contest" ]
+    
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   backend-job:
@@ -13,21 +14,10 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-
-    - name: Set up Python
-      uses: actions/setup-python@v5
+    - name: Build backend with database
+    - uses: hoverkraft-tech/compose-action@v2.0.0
       with:
-        python-version: '3.10'
-
-    - name: Install dependencies for Backend
-      run: |
-        cd backend/ContestAPI
-        pip install -r requirements.txt
-      
-    - name: Run Django Server
-      run: |
-        cd backend/ContestAPI/ContestProjectAPI
-        python manage.py runserver
+        compose-file: "./backend/ContestAPI/docker-compose.yml"
         
   java-job:
     runs-on: ubuntu-latest
