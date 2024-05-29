@@ -3,6 +3,9 @@ name: Django CI
 on:
   push:
     branches: [ "Contest" ]
+    
+  pull_request:
+    branches: ["main"]
 
 jobs:
   backend-job:
