@@ -37,16 +37,13 @@ jobs:
         ./gradlew test --no-daemon
       continue-on-error: true   
 
-    - name: Install Allure command-line tool
-      run: |
-        sudo apt-add-repository ppa:qameta/allure
-        sudo apt-get update
-        sudo apt-get install allure -y
-
-    - name: Generate Allure Report
-      run: |
-        cd tests
-        allure generate allure-results --clean -o allure-report
+    - name: Test marketplace action
+      uses: simple-elf/allure-report-action@master
+      if: always()
+      id: allure-report
+      with:
+        allure_results: ./tests/build/allure-results
+        allure_report: ./tests/allure-report
 
     - name: Upload Allure Report
       uses: actions/upload-artifact@v2
