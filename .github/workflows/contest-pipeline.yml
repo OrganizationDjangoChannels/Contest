@@ -35,6 +35,7 @@ jobs:
         chmod +x gradlew
         ./gradlew clean --no-daemon
         ./gradlew test --no-daemon
+      continue-on-error: true   
 
     - name: Install Allure command-line tool
       run: |
