@@ -4,6 +4,8 @@ datasource:
     driver-class-name: org.postgresql.Driver
     username: postgres
     password: 228Gtnhjd228
+    serverTimezone: Europe/Moscow
+    useSSL: false
     configuration:
       idle-timeout: 10000
       minimum-idle: 1
