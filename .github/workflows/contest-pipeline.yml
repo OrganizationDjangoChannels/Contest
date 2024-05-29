@@ -32,6 +32,7 @@ jobs:
     - name: Build and Test Java Project
       run: |
         cd tests
+        chmod +x gradlew
         ./gradlew clean --no-daemon
         ./gradlew test --no-daemon
 
