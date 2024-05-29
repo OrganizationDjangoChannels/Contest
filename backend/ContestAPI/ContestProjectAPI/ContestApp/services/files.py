@@ -53,7 +53,8 @@ def run_test(test, compile_command: str, environment=None) -> int:
     input_data = test.input.encode('utf-8')
 
     try:
-        output = subprocess.check_output(compile_command, stderr=subprocess.STDOUT, timeout=2, input=input_data)
+        output = subprocess.check_output(compile_command, stderr=subprocess.STDOUT, timeout=2, input=input_data,
+                                         shell=True, env=environment, )
         print(f'{output = }')
         # output, error = run_command.communicate(input=input_data)
     except subprocess.TimeoutExpired as ex:
@@ -74,7 +75,7 @@ def run_test(test, compile_command: str, environment=None) -> int:
         return 0
 
 
-def get_solution_status(points: int, level: int) -> str:
+def get_solution_status(points: int | float, level: int) -> str:
     if points == 0:
         return 'failed'
     if 0 < points < 100 * level:

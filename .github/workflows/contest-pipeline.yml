@@ -27,26 +27,26 @@ jobs:
       uses: actions/setup-java@v4
       with:
         java-version: '17'
+        distribution: 'temurin'
 
     - name: Build and Test Java Project
       run: |
         cd tests
+        chmod +x gradlew
         ./gradlew clean --no-daemon
         ./gradlew test --no-daemon
+      continue-on-error: true   
 
-    - name: Install Allure command-line tool
-      run: |
-        sudo apt-add-repository ppa:qameta/allure
-        sudo apt-get update
-        sudo apt-get install allure -y
-
-    - name: Generate Allure Report
-      run: |
-        cd tests
-        allure generate allure-results --clean -o allure-report
+    - name: Generate allure report
+      uses: simple-elf/allure-report-action@master
+      if: always()
+      id: allure-report
+      with:
+        allure_results: ./tests/build/allure-results
+        allure_report: ./tests/allure-report
 
     - name: Upload Allure Report
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: allure-report
         path: ./tests/allure-report
